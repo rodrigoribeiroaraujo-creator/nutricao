@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPacientes, deletePaciente, getSession, signOut, type Paciente } from '@/lib/supabase'
+import { getPacientes, deletePaciente, getSession, getProfile, signOut, type Paciente, type Profile } from '@/lib/supabase'
 import { calcIdadeAnos } from '@/lib/who'
 
 function idadeStr(dataNasc: string) {
@@ -16,13 +16,15 @@ export default function Home() {
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
+  const [profile, setProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
-    getSession().then(session => {
-      if (!session) {
-        router.replace('/login')
-        return
-      }
+    getSession().then(async session => {
+      if (!session) { router.replace('/login'); return }
+      const p = await getProfile(session.user.id)
+      if (p.status === 'pending') { router.replace('/pendente'); return }
+      if (p.status === 'blocked') { router.replace('/bloqueado'); return }
+      setProfile(p)
       getPacientes().then(setPacientes).finally(() => setLoading(false))
     })
   }, [router])
@@ -42,6 +44,9 @@ export default function Home() {
     p.nome.toLowerCase().includes(busca.toLowerCase())
   )
 
+  const isAdmin = profile?.role === 'admin'
+  const isAssistente = profile?.role === 'assistente'
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -56,13 +61,17 @@ export default function Home() {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <span className="font-semibold text-lg text-green-700">🌱 NutriCurvas</span>
           <div className="flex items-center gap-2">
-            <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
-              + Novo paciente
-            </Link>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-stone-400 hover:text-stone-600 px-3 py-2 rounded-lg hover:bg-stone-100"
-            >
+            {!isAssistente && (
+              <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+                + Novo paciente
+              </Link>
+            )}
+            {isAdmin && (
+              <Link href="/admin/usuarios" className="text-sm text-stone-500 hover:text-stone-700 px-3 py-2 rounded-lg hover:bg-stone-100">
+                Usuários
+              </Link>
+            )}
+            <button onClick={handleSignOut} className="text-sm text-stone-400 hover:text-stone-600 px-3 py-2 rounded-lg hover:bg-stone-100">
               Sair
             </button>
           </div>
@@ -84,7 +93,9 @@ export default function Home() {
         {filtrados.length === 0 ? (
           <div className="text-center py-20 text-stone-400">
             <p>Nenhum paciente encontrado.</p>
-            {!busca && <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">Cadastrar primeiro paciente →</Link>}
+            {!busca && !isAssistente && (
+              <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">Cadastrar primeiro paciente →</Link>
+            )}
           </div>
         ) : (
           <ul className="space-y-2">
@@ -100,7 +111,9 @@ export default function Home() {
                       <p className="text-xs text-stone-400">{p.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(p.data_nascimento)}</p>
                     </div>
                   </Link>
-                  <button onClick={() => handleDelete(p.id, p.nome)} className="p-4 text-stone-300 hover:text-red-400">✕</button>
+                  {!isAssistente && (
+                    <button onClick={() => handleDelete(p.id, p.nome)} className="p-4 text-stone-300 hover:text-red-400">✕</button>
+                  )}
                 </div>
               </li>
             ))}

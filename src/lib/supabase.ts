@@ -97,3 +97,28 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut()
   if (error) throw error
 }
+
+export type Profile = {
+  id: string
+  email: string
+  role: 'admin' | 'nutricionista' | 'assistente'
+  status: 'pending' | 'active' | 'blocked'
+  created_at: string
+}
+
+export async function getProfile(userId: string) {
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+  if (error) throw error
+  return data as Profile
+}
+
+export async function getProfiles() {
+  const { data, error } = await supabase.from('profiles').select('*').order('created_at')
+  if (error) throw error
+  return data as Profile[]
+}
+
+export async function updateProfile(id: string, updates: Partial<Pick<Profile, 'role' | 'status'>>) {
+  const { error } = await supabase.from('profiles').update(updates).eq('id', id)
+  if (error) throw error
+}
