@@ -60,91 +60,91 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-stone-50">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <span className="text-4xl">🌱</span>
-          <h1 className="text-2xl font-semibold text-green-700 mt-2">NutriCurvas</h1>
-          <p className="text-sm text-stone-400 mt-1">Avaliação de Crescimento OMS</p>
-        </div>
+    <div className="min-h-dvh flex flex-col bg-green-600" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      {/* Topo com branding */}
+      <div className="flex-1 flex flex-col items-center justify-end pb-10 px-4">
+        <span className="text-6xl mb-4">🌱</span>
+        <h1 className="text-3xl font-bold text-white">NutriCurvas</h1>
+        <p className="text-sm text-green-200 mt-1">Avaliação de Crescimento OMS</p>
+      </div>
 
-        <div className="bg-white border border-stone-100 rounded-2xl shadow-sm p-6">
-          {/* Tabs */}
-          <div className="flex bg-stone-100 rounded-lg p-1 mb-6">
-            <button
-              type="button"
-              onClick={() => { setTab('login'); setError(''); setMessage('') }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${tab === 'login' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
-            >
-              Entrar
-            </button>
-            <button
-              type="button"
-              onClick={() => { setTab('signup'); setError(''); setMessage('') }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${tab === 'signup' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400 hover:text-stone-600'}`}
-            >
-              Criar conta
-            </button>
-          </div>
-
-          {/* Google */}
+      {/* Card do formulário */}
+      <div className="bg-white rounded-t-3xl px-6 pt-8" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}>
+        {/* Tabs */}
+        <div className="flex bg-stone-100 rounded-xl p-1 mb-6">
           <button
             type="button"
-            onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-3 border border-stone-200 rounded-lg py-2.5 text-sm font-medium text-stone-700 hover:bg-stone-50"
+            onClick={() => { setTab('login'); setError(''); setMessage('') }}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'login' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400'}`}
           >
-            <GoogleIcon />
-            Continuar com Google
+            Entrar
           </button>
-
-          <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-stone-100" />
-            <span className="text-xs text-stone-300">ou</span>
-            <div className="flex-1 h-px bg-stone-100" />
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              type="email"
-              placeholder="E-mail"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              className="w-full"
-              autoComplete="email"
-            />
-            <input
-              type="password"
-              placeholder="Senha"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              minLength={6}
-              className="w-full"
-              autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
-            />
-
-            {error && (
-              <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
-                {error}
-              </p>
-            )}
-            {message && (
-              <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
-                {message}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Aguarde...' : tab === 'login' ? 'Entrar' : 'Criar conta'}
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={() => { setTab('signup'); setError(''); setMessage('') }}
+            className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === 'signup' ? 'bg-white shadow-sm text-stone-900' : 'text-stone-400'}`}
+          >
+            Criar conta
+          </button>
         </div>
+
+        {/* Google */}
+        <button
+          type="button"
+          onClick={handleGoogle}
+          className="w-full flex items-center justify-center gap-3 border border-stone-200 rounded-xl py-3 text-sm font-medium text-stone-700 hover:bg-stone-50 mb-4"
+        >
+          <GoogleIcon />
+          Continuar com Google
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-stone-100" />
+          <span className="text-xs text-stone-300">ou</span>
+          <div className="flex-1 h-px bg-stone-100" />
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <input
+            type="email"
+            placeholder="E-mail"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+            className="w-full"
+            autoComplete="email"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className="w-full"
+            autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
+          />
+
+          {error && (
+            <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+          {message && (
+            <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+              {message}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Aguarde...' : tab === 'login' ? 'Entrar' : 'Criar conta'}
+          </button>
+        </form>
       </div>
     </div>
   )
