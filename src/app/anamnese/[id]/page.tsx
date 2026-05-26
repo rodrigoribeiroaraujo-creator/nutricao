@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getAnamneseTea, type AnamneseTea } from '@/lib/supabase'
+import { getAnamneseTea, getSession, getProfile, type AnamneseTea, type Profile } from '@/lib/supabase'
 
 const NIVEL_LABEL: Record<string, string> = {
   '1': 'Nível 1 — Leve',
@@ -48,13 +48,17 @@ export default function AnamneseDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [anamnese, setAnamnese] = useState<AnamneseTea | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getAnamneseTea(id)
-      .then(setAnamnese)
-      .catch(() => router.push('/anamnese'))
-      .finally(() => setLoading(false))
+    getSession().then(async session => {
+      if (!session) { router.replace('/login'); return }
+      const [prof, a] = await Promise.all([getProfile(session.user.id), getAnamneseTea(id)])
+      setProfile(prof)
+      setAnamnese(a)
+      setLoading(false)
+    }).catch(() => router.push('/anamnese'))
   }, [id, router])
 
   if (loading) return <div className="min-h-dvh flex items-center justify-center"><p className="text-stone-400 text-sm">Carregando...</p></div>
@@ -75,9 +79,16 @@ export default function AnamneseDetailPage() {
               </span>
             </div>
           </div>
-          <button onClick={() => window.print()} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
-            Imprimir
-          </button>
+          <div className="flex items-center gap-2">
+            {profile?.role === 'admin' && (
+              <Link href={`/anamnese/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
+                Editar
+              </Link>
+            )}
+            <button onClick={() => window.print()} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
+              Imprimir
+            </button>
+          </div>
         </div>
       </header>
 

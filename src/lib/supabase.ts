@@ -168,6 +168,17 @@ export async function createAnamneseTea(a: {
   return data as AnamneseTea
 }
 
+export async function updateAnamneseTea(id: string, updates: {
+  nome_paciente?: string
+  data_consulta?: string | null
+  nutricionista?: string | null
+  nivel_tea?: string | null
+  dados?: Record<string, string>
+}) {
+  const { error } = await supabase.from('anamneses_tea').update(updates).eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteAnamneseTea(id: string) {
   const { error } = await supabase.from('anamneses_tea').delete().eq('id', id)
   if (error) throw error
