@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPacientes, deletePaciente, type Paciente } from '@/lib/supabase'
+import { getPacientes, deletePaciente, getSession, signOut, type Paciente } from '@/lib/supabase'
 import { calcIdadeAnos } from '@/lib/who'
 
 function idadeStr(dataNasc: string) {
@@ -11,13 +12,20 @@ function idadeStr(dataNasc: string) {
 }
 
 export default function Home() {
+  const router = useRouter()
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [loading, setLoading] = useState(true)
   const [busca, setBusca] = useState('')
 
   useEffect(() => {
-    getPacientes().then(setPacientes).finally(() => setLoading(false))
-  }, [])
+    getSession().then(session => {
+      if (!session) {
+        router.replace('/login')
+        return
+      }
+      getPacientes().then(setPacientes).finally(() => setLoading(false))
+    })
+  }, [router])
 
   async function handleDelete(id: string, nome: string) {
     if (!confirm(`Remover ${nome}?`)) return
@@ -25,18 +33,39 @@ export default function Home() {
     setPacientes(p => p.filter(x => x.id !== id))
   }
 
+  async function handleSignOut() {
+    await signOut()
+    router.replace('/login')
+  }
+
   const filtrados = pacientes.filter(p =>
     p.nome.toLowerCase().includes(busca.toLowerCase())
   )
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <p className="text-stone-400 text-sm">Carregando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <span className="font-semibold text-lg text-green-700">🌱 NutriCurvas</span>
-          <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
-            + Novo paciente
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+              + Novo paciente
+            </Link>
+            <button
+              onClick={handleSignOut}
+              className="text-sm text-stone-400 hover:text-stone-600 px-3 py-2 rounded-lg hover:bg-stone-100"
+            >
+              Sair
+            </button>
+          </div>
         </div>
       </header>
       <main className="max-w-3xl mx-auto px-4 py-8">
@@ -52,9 +81,7 @@ export default function Home() {
             <p className="text-3xl font-semibold text-stone-700">{filtrados.length}</p>
           </div>
         </div>
-        {loading ? (
-          <p className="text-stone-400 text-center py-10">Carregando...</p>
-        ) : filtrados.length === 0 ? (
+        {filtrados.length === 0 ? (
           <div className="text-center py-20 text-stone-400">
             <p>Nenhum paciente encontrado.</p>
             {!busca && <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">Cadastrar primeiro paciente →</Link>}
