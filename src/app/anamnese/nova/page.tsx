@@ -145,6 +145,16 @@ export default function NovaAnamnesePage() {
     pesoN > 0 && altN > 0
   )
 
+  function abrirCurvas() {
+    if (!canShowChart) { alert('Preencha data de nascimento e sexo na etapa 1 para ver as curvas.'); return }
+    const p = new URLSearchParams({
+      peso: form.peso_kg, alt: form.estatura_cm,
+      nasc: form.data_nascimento, sexo: form.sexo,
+      data: form.data_consulta || new Date().toISOString().split('T')[0],
+    })
+    router.push(`/anamnese/curvas?${p.toString()}`)
+  }
+
   async function handleSave() {
     if (!form.nome_paciente.trim()) { setErro('Nome do paciente é obrigatório.'); return }
     if (!userId) return
@@ -228,10 +238,11 @@ export default function NovaAnamnesePage() {
           </div>
 
           {imc && (
-            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between">
-              <p className="text-xs text-green-600 font-medium">IMC calculado</p>
+            <button type="button" onClick={abrirCurvas}
+              className="w-full bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between active:opacity-70">
+              <p className="text-xs text-green-600 font-medium">IMC calculado — ver curvas OMS →</p>
               <p className="text-xl font-bold text-green-700">{imc} <span className="text-sm font-normal">kg/m²</span></p>
-            </div>
+            </button>
           )}
 
           {canShowChart && (
