@@ -128,3 +128,47 @@ export async function updateProfile(id: string, updates: Partial<Pick<Profile, '
   const { error } = await supabase.from('profiles').update(updates).eq('id', id)
   if (error) throw error
 }
+
+export type AnamneseTea = {
+  id: string
+  nome_paciente: string
+  data_consulta: string | null
+  nutricionista: string | null
+  nivel_tea: string | null
+  dados: Record<string, string>
+  created_by: string
+  created_at: string
+}
+
+export async function getAnamnesesTea() {
+  const { data, error } = await supabase
+    .from('anamneses_tea')
+    .select('id, nome_paciente, data_consulta, nutricionista, nivel_tea, created_at')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data as Omit<AnamneseTea, 'dados'>[]
+}
+
+export async function getAnamneseTea(id: string) {
+  const { data, error } = await supabase.from('anamneses_tea').select('*').eq('id', id).single()
+  if (error) throw error
+  return data as AnamneseTea
+}
+
+export async function createAnamneseTea(a: {
+  nome_paciente: string
+  data_consulta?: string
+  nutricionista?: string
+  nivel_tea?: string
+  dados: Record<string, string>
+  created_by: string
+}) {
+  const { data, error } = await supabase.from('anamneses_tea').insert(a).select().single()
+  if (error) throw error
+  return data as AnamneseTea
+}
+
+export async function deleteAnamneseTea(id: string) {
+  const { error } = await supabase.from('anamneses_tea').delete().eq('id', id)
+  if (error) throw error
+}
