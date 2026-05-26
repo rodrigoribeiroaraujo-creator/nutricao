@@ -2,11 +2,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { createAnamneseTea, getSession, getProfile } from '@/lib/supabase'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries } from '@/lib/who'
 
 const STEPS = ['Paciente', 'Antropometria', 'Alimentação', 'Sono e rotina', 'Conduta']
 
 type FormData = {
+  tem_tea: string
   nome_paciente: string; data_nascimento: string; sexo: string; nivel_tea: string
   numero_consulta: string; nutricionista: string; data_consulta: string
   queixa_principal: string; suplementos_medicamentos: string
@@ -24,8 +27,9 @@ type FormData = {
 }
 
 const INITIAL: FormData = {
-  nome_paciente: '', data_nascimento: '', sexo: '', nivel_tea: '', numero_consulta: '',
-  nutricionista: '', data_consulta: new Date().toISOString().split('T')[0],
+  tem_tea: '', nome_paciente: '', data_nascimento: '', sexo: '', nivel_tea: '',
+  numero_consulta: '', nutricionista: '',
+  data_consulta: new Date().toISOString().split('T')[0],
   queixa_principal: '', suplementos_medicamentos: '',
   peso_kg: '', estatura_cm: '', peso_nascimento_kg: '', comprimento_nascimento_cm: '',
   perimetro_cefalico_cm: '', historico_peso: '',
@@ -59,10 +63,64 @@ function RadioGroup({ value, onChange, options }: { value: string; onChange: (v:
   )
 }
 
+function zoneColor(zone: string) {
+  if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50'
+  if (zone === 'low' || zone === 'high') return 'text-amber-600 bg-amber-50'
+  return 'text-green-700 bg-green-50'
+}
+
+type ChartTipo = 'imc' | 'peso' | 'altura'
+
+function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
+  dataNasc: string; sexo: string; dataRef: string
+  pesoKg: number; altCm: number; tipo: ChartTipo
+}) {
+  const ageY = calcIdadeAnos(dataNasc, dataRef)
+  const dataset = tipo === 'imc' ? WHO_IMC : tipo === 'peso' ? WHO_PESO : WHO_ALTURA
+  const s = sexo as 'M' | 'F'
+  const { ages, p3, p15, p50, p85, p97 } = getChartSeries(dataset, s, ageY)
+  const curveData = ages.map((age: number, i: number) => ({
+    age: parseFloat(age.toFixed(2)), p3: p3[i], p15: p15[i], p50: p50[i], p85: p85[i], p97: p97[i],
+  }))
+  const imc = pesoKg / Math.pow(altCm / 100, 2)
+  const val = tipo === 'imc' ? imc : tipo === 'peso' ? pesoKg : altCm
+  const unit = tipo === 'imc' ? 'kg/m²' : tipo === 'peso' ? 'kg' : 'cm'
+  const { label, zone } = classifyPercentile(val, ageY, dataset, s)
+  const patientPoint = [{ age: parseFloat(ageY.toFixed(2)), val }]
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs text-stone-400 font-medium uppercase tracking-wider">
+          {tipo === 'imc' ? 'IMC' : tipo === 'peso' ? 'Peso' : 'Altura'} × Idade — OMS
+        </p>
+        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(zone)}`}>{label}</span>
+      </div>
+      <ResponsiveContainer width="100%" height={200}>
+        <LineChart margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+          <XAxis dataKey="age" type="number" domain={['dataMin', 'dataMax']}
+            tickFormatter={v => ageY <= 2 ? `${Math.round(v * 12)}m` : `${parseFloat(v).toFixed(0)}a`}
+            tick={{ fontSize: 10 }} />
+          <YAxis tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={32} />
+          <Tooltip formatter={(v: any) => [`${parseFloat(v).toFixed(1)} ${unit}`]} />
+          <Line data={curveData} dataKey="p97" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="P97" />
+          <Line data={curveData} dataKey="p85" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="P85" />
+          <Line data={curveData} dataKey="p50" stroke="#86efac" strokeWidth={2} dot={false} name="P50" />
+          <Line data={curveData} dataKey="p15" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="P15" />
+          <Line data={curveData} dataKey="p3" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="P3" />
+          <Line data={patientPoint} dataKey="val" stroke="#16a34a" strokeWidth={0}
+            dot={{ fill: '#16a34a', r: 6, strokeWidth: 2, stroke: '#fff' }} name="Paciente" />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 export default function NovaAnamnesePage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<FormData>(INITIAL)
+  const [chartTipo, setChartTipo] = useState<ChartTipo>('imc')
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
@@ -78,9 +136,14 @@ export default function NovaAnamnesePage() {
 
   function set(k: keyof FormData, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
-  const imc = form.peso_kg && form.estatura_cm
-    ? (parseFloat(form.peso_kg) / Math.pow(parseFloat(form.estatura_cm) / 100, 2)).toFixed(1)
-    : null
+  const pesoN = parseFloat(form.peso_kg)
+  const altN = parseFloat(form.estatura_cm)
+  const imc = pesoN && altN ? (pesoN / Math.pow(altN / 100, 2)).toFixed(1) : null
+
+  const canShowChart = !!(
+    form.data_nascimento && form.sexo && (form.sexo === 'M' || form.sexo === 'F') &&
+    pesoN > 0 && altN > 0
+  )
 
   async function handleSave() {
     if (!form.nome_paciente.trim()) { setErro('Nome do paciente é obrigatório.'); return }
@@ -91,7 +154,7 @@ export default function NovaAnamnesePage() {
         nome_paciente: form.nome_paciente.trim(),
         data_consulta: form.data_consulta || undefined,
         nutricionista: form.nutricionista || undefined,
-        nivel_tea: form.nivel_tea || undefined,
+        nivel_tea: form.tem_tea === 'sim' ? (form.nivel_tea || undefined) : undefined,
         dados: { ...form, imc: imc ?? '' },
         created_by: userId,
       })
@@ -104,6 +167,10 @@ export default function NovaAnamnesePage() {
     switch (step) {
       case 1: return (
         <div className="space-y-4">
+          <Field label="Tem diagnóstico de TEA?">
+            <RadioGroup value={form.tem_tea} onChange={v => set('tem_tea', v)}
+              options={[{ v: 'sim', l: 'Sim — com TEA' }, { v: 'nao', l: 'Não — sem TEA' }]} />
+          </Field>
           <Field label="Nome completo">
             <input type="text" value={form.nome_paciente} onChange={e => set('nome_paciente', e.target.value)} placeholder="Nome do paciente" className="w-full" />
           </Field>
@@ -119,7 +186,7 @@ export default function NovaAnamnesePage() {
               </select>
             </Field>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          {form.tem_tea === 'sim' && (
             <Field label="Nível TEA (DSM-5)">
               <select value={form.nivel_tea} onChange={e => set('nivel_tea', e.target.value)} className="w-full text-sm">
                 <option value="">Selecione</option>
@@ -128,23 +195,23 @@ export default function NovaAnamnesePage() {
                 <option value="3">Nível 3 — Grave</option>
               </select>
             </Field>
+          )}
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Nº de consulta">
               <input type="text" value={form.numero_consulta} onChange={e => set('numero_consulta', e.target.value)} placeholder="Ex: 1ª consulta" className="w-full" />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Nutricionista (Nome / CRN)">
-              <input type="text" value={form.nutricionista} onChange={e => set('nutricionista', e.target.value)} placeholder="Nome / CRN" className="w-full" />
             </Field>
             <Field label="Data da consulta">
               <input type="date" value={form.data_consulta} onChange={e => set('data_consulta', e.target.value)} className="w-full" />
             </Field>
           </div>
+          <Field label="Nutricionista (Nome / CRN)">
+            <input type="text" value={form.nutricionista} onChange={e => set('nutricionista', e.target.value)} placeholder="Nome / CRN" className="w-full" />
+          </Field>
           <Field label="Queixa principal / motivo da consulta">
-            <textarea value={form.queixa_principal} onChange={e => set('queixa_principal', e.target.value)} rows={3} className="w-full resize-none" placeholder="Ex: seletividade alimentar extrema, perda de peso, recusa de grupos alimentares..." />
+            <textarea value={form.queixa_principal} onChange={e => set('queixa_principal', e.target.value)} rows={3} className="w-full resize-none" placeholder="Ex: seletividade alimentar extrema, perda de peso..." />
           </Field>
           <Field label="Uso de suplementos ou medicamentos">
-            <textarea value={form.suplementos_medicamentos} onChange={e => set('suplementos_medicamentos', e.target.value)} rows={2} className="w-full resize-none" placeholder="Liste suplementos, vitaminas, medicamentos em uso e doses..." />
+            <textarea value={form.suplementos_medicamentos} onChange={e => set('suplementos_medicamentos', e.target.value)} rows={2} className="w-full resize-none" placeholder="Liste suplementos, vitaminas, medicamentos e doses..." />
           </Field>
         </div>
       )
@@ -159,12 +226,41 @@ export default function NovaAnamnesePage() {
               <input type="number" step="0.1" value={form.estatura_cm} onChange={e => set('estatura_cm', e.target.value)} placeholder="Ex: 128" className="w-full" />
             </Field>
           </div>
+
           {imc && (
             <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between">
               <p className="text-xs text-green-600 font-medium">IMC calculado</p>
               <p className="text-xl font-bold text-green-700">{imc} <span className="text-sm font-normal">kg/m²</span></p>
             </div>
           )}
+
+          {canShowChart && (
+            <div className="bg-white border border-stone-100 rounded-xl p-4 space-y-3">
+              <div className="flex gap-2">
+                {(['imc', 'peso', 'altura'] as ChartTipo[]).map(t => (
+                  <button key={t} type="button" onClick={() => setChartTipo(t)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${chartTipo === t ? 'bg-green-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
+                    {t === 'imc' ? 'IMC' : t === 'peso' ? 'Peso' : 'Altura'}
+                  </button>
+                ))}
+              </div>
+              <CurvaAnamnese
+                dataNasc={form.data_nascimento}
+                sexo={form.sexo}
+                dataRef={form.data_consulta || new Date().toISOString().split('T')[0]}
+                pesoKg={pesoN}
+                altCm={altN}
+                tipo={chartTipo}
+              />
+            </div>
+          )}
+
+          {!canShowChart && (
+            <p className="text-xs text-stone-400 text-center py-4">
+              Preencha peso e altura acima e os dados de nascimento e sexo na etapa 1 para gerar a curva OMS.
+            </p>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <Field label="Peso ao nascer (kg)">
               <input type="number" step="0.01" value={form.peso_nascimento_kg} onChange={e => set('peso_nascimento_kg', e.target.value)} placeholder="Ex: 3.2" className="w-full" />
@@ -196,7 +292,8 @@ export default function NovaAnamnesePage() {
             <input type="text" value={form.local_refeicoes} onChange={e => set('local_refeicoes', e.target.value)} placeholder="Ex: mesa da cozinha" className="w-full" />
           </Field>
           <Field label="Come em família?">
-            <RadioGroup value={form.refeicao_familia} onChange={v => set('refeicao_familia', v)} options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }, { v: 'as_vezes', l: 'Às vezes' }]} />
+            <RadioGroup value={form.refeicao_familia} onChange={v => set('refeicao_familia', v)}
+              options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }, { v: 'as_vezes', l: 'Às vezes' }]} />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Consistência preferida">
@@ -219,10 +316,12 @@ export default function NovaAnamnesePage() {
             </Field>
           </div>
           <Field label="Grau de seletividade alimentar">
-            <RadioGroup value={form.seletividade} onChange={v => set('seletividade', v)} options={[{ v: 'leve', l: 'Leve' }, { v: 'moderada', l: 'Moderada' }, { v: 'grave', l: 'Grave' }]} />
+            <RadioGroup value={form.seletividade} onChange={v => set('seletividade', v)}
+              options={[{ v: 'leve', l: 'Leve' }, { v: 'moderada', l: 'Moderada' }, { v: 'grave', l: 'Grave' }]} />
           </Field>
           <Field label="Apresenta neofobia alimentar?">
-            <RadioGroup value={form.neofobia} onChange={v => set('neofobia', v)} options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
+            <RadioGroup value={form.neofobia} onChange={v => set('neofobia', v)}
+              options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
           </Field>
           <Field label="Alimentos aceitos">
             <textarea value={form.alimentos_aceitos} onChange={e => set('alimentos_aceitos', e.target.value)} rows={2} className="w-full resize-none" placeholder="Liste os alimentos aceitos pelo paciente..." />
@@ -231,7 +330,7 @@ export default function NovaAnamnesePage() {
             <textarea value={form.alimentos_recusados} onChange={e => set('alimentos_recusados', e.target.value)} rows={2} className="w-full resize-none" placeholder="Liste os alimentos rejeitados..." />
           </Field>
           <Field label="Rituais e comportamentos nas refeições">
-            <textarea value={form.rituais} onChange={e => set('rituais', e.target.value)} rows={2} className="w-full resize-none" placeholder="Ex: só come em prato específico, recusa mistura de alimentos..." />
+            <textarea value={form.rituais} onChange={e => set('rituais', e.target.value)} rows={2} className="w-full resize-none" placeholder="Ex: só come em prato específico, recusa mistura..." />
           </Field>
           <Field label="Outras observações">
             <textarea value={form.obs_alimentacao} onChange={e => set('obs_alimentacao', e.target.value)} rows={2} className="w-full resize-none" />
@@ -255,13 +354,15 @@ export default function NovaAnamnesePage() {
             </Field>
           </div>
           <Field label="Dificuldade para iniciar o sono?">
-            <RadioGroup value={form.dificuldade_sono} onChange={v => set('dificuldade_sono', v)} options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
+            <RadioGroup value={form.dificuldade_sono} onChange={v => set('dificuldade_sono', v)}
+              options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
           </Field>
           <Field label="Rotina diária">
             <textarea value={form.rotina_diaria} onChange={e => set('rotina_diaria', e.target.value)} rows={3} className="w-full resize-none" placeholder="Descreva a rotina típica do paciente durante o dia..." />
           </Field>
           <Field label="Pratica atividade física?">
-            <RadioGroup value={form.pratica_atividade} onChange={v => set('pratica_atividade', v)} options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
+            <RadioGroup value={form.pratica_atividade} onChange={v => set('pratica_atividade', v)}
+              options={[{ v: 'sim', l: 'Sim' }, { v: 'nao', l: 'Não' }]} />
           </Field>
           {form.pratica_atividade === 'sim' && (
             <Field label="Tipo e frequência de atividade física">
@@ -306,7 +407,7 @@ export default function NovaAnamnesePage() {
         <div className="px-4 py-3 flex items-center gap-3">
           <Link href="/anamnese" className="text-stone-400 hover:text-stone-700">←</Link>
           <div>
-            <h1 className="font-semibold text-base text-stone-800">Nova Anamnese TEA</h1>
+            <h1 className="font-semibold text-base text-stone-800">Nova Anamnese</h1>
             <p className="text-xs text-stone-400">Etapa {step} de 5 — {STEPS[step - 1]}</p>
           </div>
         </div>

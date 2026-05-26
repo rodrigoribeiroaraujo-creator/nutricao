@@ -70,9 +70,9 @@ export default function AnamneseDetailPage() {
             <Link href="/anamnese" className="text-stone-400 hover:text-stone-700">←</Link>
             <div>
               <h1 className="font-semibold text-base text-stone-800 truncate max-w-[180px]">{anamnese.nome_paciente}</h1>
-              {anamnese.nivel_tea && (
-                <span className="text-xs text-green-600">{NIVEL_LABEL[anamnese.nivel_tea]}</span>
-              )}
+              <span className="text-xs text-stone-400">
+                {anamnese.nivel_tea ? `TEA — ${NIVEL_LABEL[anamnese.nivel_tea]}` : 'Sem TEA'}
+              </span>
             </div>
           </div>
           <button onClick={() => window.print()} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
@@ -87,7 +87,7 @@ export default function AnamneseDetailPage() {
             <Row label="Nome" value={anamnese.nome_paciente} />
             <Row label="Data de nascimento" value={fmtDate(d.data_nascimento)} />
             <Row label="Sexo" value={SEXO[d.sexo] ?? d.sexo} />
-            <Row label="Nível TEA" value={NIVEL_LABEL[anamnese.nivel_tea ?? ''] ?? anamnese.nivel_tea} />
+            <Row label="TEA" value={d.tem_tea === 'sim' ? (NIVEL_LABEL[anamnese.nivel_tea ?? ''] ?? 'Sim') : 'Não'} />
             <Row label="Nº de consulta" value={d.numero_consulta} />
             <Row label="Data da consulta" value={fmtDate(anamnese.data_consulta)} />
             <Row label="Nutricionista" value={anamnese.nutricionista} />

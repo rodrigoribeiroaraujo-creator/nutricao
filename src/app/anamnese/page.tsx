@@ -42,7 +42,7 @@ export default function AnamnesePage() {
     <div className="min-h-dvh flex flex-col">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
-          <h1 className="font-semibold text-base text-stone-800">Anamnese TEA</h1>
+          <h1 className="font-semibold text-base text-stone-800">Anamneses</h1>
           {profile.role !== 'assistente' && (
             <Link href="/anamnese/nova" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
               + Nova
@@ -72,9 +72,13 @@ export default function AnamnesePage() {
                   <Link href={`/anamnese/${a.id}`} className="flex-1 p-4">
                     <p className="font-medium text-stone-800 text-sm">{a.nome_paciente}</p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      {a.nivel_tea && (
+                      {a.nivel_tea ? (
                         <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5">
-                          {NIVEL_LABEL[a.nivel_tea] ?? `Nível ${a.nivel_tea}`}
+                          TEA — {NIVEL_LABEL[a.nivel_tea] ?? `Nível ${a.nivel_tea}`}
+                        </span>
+                      ) : (
+                        <span className="text-xs bg-stone-50 text-stone-500 border border-stone-200 rounded-full px-2 py-0.5">
+                          Sem TEA
                         </span>
                       )}
                       {a.data_consulta && (
