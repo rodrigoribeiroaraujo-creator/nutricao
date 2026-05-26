@@ -15,7 +15,43 @@
     "incremental": true,
     "plugins": [{ "name": "next" }],
     "paths": { "@/*": ["./src/*"] }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+cat > src/lib/supabase.ts << 'EOF'
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+export const supabase = createClient(supabaseUrl, supabaseKey)
+
+export type Paciente = {
+  id: string
+  nome: string
+  data_nascimento: string
+  sexo: 'M' | 'F'
+  observacoes?: string
+  created_at: string
+  updated_at: string
 }
+
+export type Medicao = {
+  id: string
+  paciente_id: string
+  data_medicao: string
+  peso_kg: number
+  altura_cm: number
+  imc: number
+  imc_percentil?: string
+  peso_percentil?: string
+  altura_percentil?: string
+  observacoes?: string
+  created_at: string
+}
+
+export async function getPacientes() {
+  const { data, error } = await supabase.from('pacientes').select('*').order('nome')
+  if (error) throw error
+  return data as Paciente[]
+}
+
+export async function getPaciente(id: string) {
+  const

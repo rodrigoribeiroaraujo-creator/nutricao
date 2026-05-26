@@ -1,6 +1,3 @@
-// Dados OMS – Percentis P3, P15, P50, P85, P97
-// Fonte: WHO Child Growth Standards 2006 (0-5a) + WHO Growth Reference 2007 (5-19a)
-
 type PercentileSet = { ages: number[]; p3: number[]; p15: number[]; p50: number[]; p85: number[]; p97: number[] }
 type GenderData = { monthly: PercentileSet; yearly: PercentileSet }
 
@@ -159,9 +156,5 @@ export function getChartSeries(dataset: Record<string, GenderData>, sex: string,
   const useMonthly = ageYears <= 2
   const d = useMonthly ? dataset[sex].monthly : dataset[sex].yearly
   const ages = useMonthly ? d.ages.map((m: number) => parseFloat((m / 12).toFixed(3))) : d.ages
-  return {
-    ages,
-    p3: d.p3, p15: d.p15, p50: d.p50, p85: d.p85, p97: d.p97,
-    xLabel: useMonthly ? 'Meses' : 'Anos',
-  }
+  return { ages, p3: d.p3, p15: d.p15, p50: d.p50, p85: d.p85, p97: d.p97, xLabel: useMonthly ? 'Meses' : 'Anos' }
 }
