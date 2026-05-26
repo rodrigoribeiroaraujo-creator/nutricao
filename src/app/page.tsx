@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPacientes, deletePaciente, getSession, getProfile, signOut, type Paciente, type Profile } from '@/lib/supabase'
+import { getPacientes, deletePaciente, getSession, getProfile, type Paciente, type Profile } from '@/lib/supabase'
 import { calcIdadeAnos } from '@/lib/who'
+import BottomNav from '@/components/BottomNav'
 
 function idadeStr(dataNasc: string) {
   const anos = calcIdadeAnos(dataNasc)
@@ -35,66 +36,61 @@ export default function Home() {
     setPacientes(p => p.filter(x => x.id !== id))
   }
 
-  async function handleSignOut() {
-    await signOut()
-    router.replace('/login')
-  }
-
   const filtrados = pacientes.filter(p =>
     p.nome.toLowerCase().includes(busca.toLowerCase())
   )
 
-  const isAdmin = profile?.role === 'admin'
   const isAssistente = profile?.role === 'assistente'
 
-  if (loading) {
+  if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="min-h-dvh flex items-center justify-center">
         <p className="text-stone-400 text-sm">Carregando...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
-        <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          <span className="font-semibold text-lg text-green-700">🌱 NutriCurvas</span>
-          <div className="flex items-center gap-2">
-            {!isAssistente && (
-              <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
-                + Novo paciente
-              </Link>
-            )}
-            {isAdmin && (
-              <Link href="/admin/usuarios" className="text-sm text-stone-500 hover:text-stone-700 px-3 py-2 rounded-lg hover:bg-stone-100">
-                Usuários
-              </Link>
-            )}
-            <button onClick={handleSignOut} className="text-sm text-stone-400 hover:text-stone-600 px-3 py-2 rounded-lg hover:bg-stone-100">
-              Sair
-            </button>
-          </div>
+    <div className="min-h-dvh flex flex-col">
+      <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        <div className="px-4 py-4 flex items-center justify-between">
+          <span className="font-semibold text-base text-green-700">🌱 NutriCurvas</span>
+          {!isAssistente && (
+            <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+              + Novo
+            </Link>
+          )}
         </div>
       </header>
-      <main className="max-w-3xl mx-auto px-4 py-8">
-        <input type="search" placeholder="Buscar paciente..." value={busca}
-          onChange={e => setBusca(e.target.value)} className="w-full mb-6 text-base" />
-        <div className="grid grid-cols-2 gap-3 mb-8">
+
+      <main className="flex-1 px-4 py-6 pb-28 overflow-y-auto">
+        <input
+          type="search"
+          placeholder="Buscar paciente..."
+          value={busca}
+          onChange={e => setBusca(e.target.value)}
+          className="w-full mb-5 text-base"
+        />
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-white border border-stone-100 rounded-xl p-4">
-            <p className="text-xs text-stone-400 mb-1">Total de pacientes</p>
+            <p className="text-xs text-stone-400 mb-1">Total</p>
             <p className="text-3xl font-semibold text-green-600">{pacientes.length}</p>
           </div>
           <div className="bg-white border border-stone-100 rounded-xl p-4">
-            <p className="text-xs text-stone-400 mb-1">Resultado da busca</p>
+            <p className="text-xs text-stone-400 mb-1">Busca</p>
             <p className="text-3xl font-semibold text-stone-700">{filtrados.length}</p>
           </div>
         </div>
-        {filtrados.length === 0 ? (
+
+        {loading ? (
+          <p className="text-stone-400 text-center py-10">Carregando...</p>
+        ) : filtrados.length === 0 ? (
           <div className="text-center py-20 text-stone-400">
             <p>Nenhum paciente encontrado.</p>
             {!busca && !isAssistente && (
-              <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">Cadastrar primeiro paciente →</Link>
+              <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">
+                Cadastrar primeiro paciente →
+              </Link>
             )}
           </div>
         ) : (
@@ -120,6 +116,8 @@ export default function Home() {
           </ul>
         )}
       </main>
+
+      <BottomNav profile={profile} />
     </div>
   )
 }

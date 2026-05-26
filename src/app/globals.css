@@ -12,3 +12,21 @@
   }
   button { @apply transition-all active:scale-95; }
 }
+
+.app-frame {
+  max-width: 430px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+@media (min-width: 431px) {
+  body {
+    background: #d6d3d1 !important;
+    min-height: 100vh;
+  }
+  .app-frame {
+    box-shadow: 0 0 60px rgba(0,0,0,0.2);
+  }
+}
