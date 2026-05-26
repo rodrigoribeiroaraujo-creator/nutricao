@@ -41,6 +41,7 @@ export default function Home() {
   )
 
   const isAssistente = profile?.role === 'assistente'
+  const isAdmin = profile?.role === 'admin'
 
   if (!profile) {
     return (
@@ -108,7 +109,10 @@ export default function Home() {
                     </div>
                   </Link>
                   {!isAssistente && (
-                    <button onClick={() => handleDelete(p.id, p.nome)} className="p-4 text-stone-300 hover:text-red-400">✕</button>
+                    <Link href={`/pacientes/${p.id}/editar`} className="p-3 text-stone-300 hover:text-blue-400 text-lg leading-none">✏</Link>
+                  )}
+                  {isAdmin && (
+                    <button onClick={() => handleDelete(p.id, p.nome)} className="p-3 text-stone-300 hover:text-red-400">✕</button>
                   )}
                 </div>
               </li>

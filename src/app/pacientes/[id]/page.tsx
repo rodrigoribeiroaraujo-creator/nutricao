@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPaciente, getMedicoes, createMedicao, deleteMedicao, type Paciente, type Medicao } from '@/lib/supabase'
+import { getPaciente, getMedicoes, createMedicao, deleteMedicao, getSession, getProfile, type Paciente, type Medicao, type Profile } from '@/lib/supabase'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries } from '@/lib/who'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -57,6 +57,7 @@ export default function PacientePage() {
   const router = useRouter()
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [medicoes, setMedicoes] = useState<Medicao[]>([])
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'imc'|'peso'|'altura'>('imc')
   const [showForm, setShowForm] = useState(false)
@@ -65,11 +66,15 @@ export default function PacientePage() {
   const [form, setForm] = useState({ data_medicao: new Date().toISOString().split('T')[0], peso_kg: '', altura_cm: '', observacoes: '' })
 
   useEffect(() => {
-    Promise.all([getPaciente(id), getMedicoes(id)])
-      .then(([p, m]) => { setPaciente(p); setMedicoes(m) })
-      .catch(() => router.push('/'))
-      .finally(() => setLoading(false))
-  }, [id])
+    getSession().then(async session => {
+      if (!session) { router.push('/login'); return }
+      const [prof, p, m] = await Promise.all([getProfile(session.user.id), getPaciente(id), getMedicoes(id)])
+      setProfile(prof)
+      setPaciente(p)
+      setMedicoes(m)
+      setLoading(false)
+    }).catch(() => router.push('/'))
+  }, [id, router])
 
   async function handleAddMedicao(e: React.FormEvent) {
     e.preventDefault()
@@ -110,9 +115,16 @@ export default function PacientePage() {
               <p className="text-xs text-stone-400">{paciente.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(paciente.data_nascimento)}</p>
             </div>
           </div>
-          <button onClick={() => setShowForm(s => !s)} className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
-            + Nova medição
-          </button>
+          <div className="flex items-center gap-2">
+            {profile?.role !== 'assistente' && (
+              <Link href={`/pacientes/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
+                Editar
+              </Link>
+            )}
+            <button onClick={() => setShowForm(s => !s)} className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+              + Medição
+            </button>
+          </div>
         </div>
       </header>
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
@@ -202,7 +214,9 @@ export default function PacientePage() {
                         <td className="px-4 py-3 text-right font-medium">{m.imc?.toFixed(1)}</td>
                         <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{m.imc_percentil ?? '–'}</span></td>
                         <td className="px-2 py-3">
-                          <button onClick={async () => { if(confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) }}} className="text-stone-300 hover:text-red-400 p-1">✕</button>
+                          {profile?.role === 'admin' && (
+                            <button onClick={async () => { if(confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) }}} className="text-stone-300 hover:text-red-400 p-1">✕</button>
+                          )}
                         </td>
                       </tr>
                     )

@@ -47,6 +47,12 @@ export async function createPaciente(p: Omit<Paciente, 'id' | 'created_at' | 'up
   return data as Paciente
 }
 
+export async function updatePaciente(id: string, p: Partial<Omit<Paciente, 'id' | 'created_at' | 'updated_at'>>) {
+  const { data, error } = await supabase.from('pacientes').update(p).eq('id', id).select().single()
+  if (error) throw error
+  return data as Paciente
+}
+
 export async function deletePaciente(id: string) {
   const { error } = await supabase.from('pacientes').delete().eq('id', id)
   if (error) throw error
