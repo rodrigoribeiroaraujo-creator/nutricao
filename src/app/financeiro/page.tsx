@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getSession, getProfile, getPacientes, getConsultas, createConsulta, updateConsultaStatus, deleteConsulta, type Profile, type Paciente, type Consulta } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 
@@ -174,9 +175,13 @@ export default function FinanceiroPage() {
               <li key={c.id} className="bg-white border border-stone-100 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-stone-800 text-sm truncate">
-                      {c.pacientes?.nome ?? 'Sem paciente'}
-                    </p>
+                    {c.paciente_id ? (
+                      <Link href={`/pacientes/${c.paciente_id}`} className="font-medium text-stone-800 text-sm truncate hover:text-green-700 block">
+                        {c.pacientes?.nome ?? 'Paciente'}
+                      </Link>
+                    ) : (
+                      <p className="font-medium text-stone-800 text-sm truncate">Sem paciente</p>
+                    )}
                     <p className="text-xs text-stone-400 mt-0.5">
                       {new Date(c.data + 'T12:00:00').toLocaleDateString('pt-BR')}
                       {c.descricao ? ` · ${c.descricao}` : ''}
