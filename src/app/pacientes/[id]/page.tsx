@@ -3,7 +3,12 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPaciente, getMedicoes, createMedicao, deleteMedicao, getSession, getProfile, type Paciente, type Medicao, type Profile } from '@/lib/supabase'
+import {
+  getPaciente, getMedicoes, createMedicao, deleteMedicao,
+  getConsultasByPaciente, createConsulta, updateConsultaStatus, deleteConsulta,
+  getSession, getProfile,
+  type Paciente, type Medicao, type Profile, type Consulta,
+} from '@/lib/supabase'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
@@ -18,6 +23,22 @@ function zoneColor(zone: string) {
   if (zone === 'low' || zone === 'very_high') return 'text-amber-600 bg-amber-50'
   if (zone === 'high') return 'text-yellow-600 bg-yellow-50'
   return 'text-green-700 bg-green-50'
+}
+
+function fmt(valor: number) {
+  return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+}
+
+const STATUS_LABEL: Record<Consulta['status'], string> = {
+  pago: 'Pago',
+  pendente: 'Pendente',
+  cancelado: 'Cancelado',
+}
+
+const STATUS_COLOR: Record<Consulta['status'], string> = {
+  pago: 'bg-green-50 text-green-700 border-green-200',
+  pendente: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  cancelado: 'bg-red-50 text-red-500 border-red-200',
 }
 
 function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes: Medicao[]; tipo: 'imc'|'peso'|'altura' }) {
@@ -70,21 +91,41 @@ export default function PacientePage() {
   const router = useRouter()
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [medicoes, setMedicoes] = useState<Medicao[]>([])
+  const [consultas, setConsultas] = useState<Consulta[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'imc'|'peso'|'altura'>('imc')
+
+  // medição
   const [showForm, setShowForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
   const [form, setForm] = useState({ data_medicao: new Date().toISOString().split('T')[0], peso_kg: '', altura_cm: '', observacoes: '' })
 
+  // consulta financeira
+  const [showConsultaForm, setShowConsultaForm] = useState(false)
+  const [savingConsulta, setSavingConsulta] = useState(false)
+  const [erroConsulta, setErroConsulta] = useState('')
+  const [consultaForm, setConsultaForm] = useState({
+    data: new Date().toISOString().slice(0, 10),
+    valor: '',
+    status: 'pendente' as Consulta['status'],
+    descricao: '',
+  })
+
   useEffect(() => {
     getSession().then(async session => {
       if (!session) { router.push('/login'); return }
-      const [prof, p, m] = await Promise.all([getProfile(session.user.id), getPaciente(id), getMedicoes(id)])
+      const [prof, p, m, cs] = await Promise.all([
+        getProfile(session.user.id),
+        getPaciente(id),
+        getMedicoes(id),
+        getConsultasByPaciente(id),
+      ])
       setProfile(prof)
       setPaciente(p)
       setMedicoes(m)
+      setConsultas(cs)
       setLoading(false)
     }).catch(() => router.push('/'))
   }, [id, router])
@@ -111,25 +152,58 @@ export default function PacientePage() {
     finally { setSaving(false) }
   }
 
+  async function handleAddConsulta(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingConsulta(true); setErroConsulta('')
+    try {
+      const nova = await createConsulta({
+        paciente_id: id,
+        data: consultaForm.data,
+        valor: parseFloat(consultaForm.valor.replace(',', '.')),
+        status: consultaForm.status,
+        descricao: consultaForm.descricao || null,
+      })
+      setConsultas(cs => [nova, ...cs])
+      setShowConsultaForm(false)
+      setConsultaForm(f => ({ ...f, valor: '', descricao: '' }))
+    } catch (err: any) { setErroConsulta(err.message) }
+    finally { setSavingConsulta(false) }
+  }
+
+  async function handleConsultaStatus(consultaId: string, status: Consulta['status']) {
+    await updateConsultaStatus(consultaId, status)
+    setConsultas(cs => cs.map(c => c.id === consultaId ? { ...c, status } : c))
+  }
+
+  async function handleDeleteConsulta(consultaId: string) {
+    if (!confirm('Remover esta consulta?')) return
+    await deleteConsulta(consultaId)
+    setConsultas(cs => cs.filter(c => c.id !== consultaId))
+  }
+
   if (loading) return <div className="flex items-center justify-center min-h-screen"><p className="text-stone-400">Carregando...</p></div>
   if (!paciente) return null
 
   const ultima = medicoes[medicoes.length - 1]
   const ageAtLast = ultima ? calcIdadeAnos(paciente.data_nascimento, ultima.data_medicao) : null
+  const podeEditar = profile?.role !== 'assistente'
+
+  const totalPago = consultas.filter(c => c.status === 'pago').reduce((s, c) => s + c.valor, 0)
+  const totalPendente = consultas.filter(c => c.status === 'pendente').reduce((s, c) => s + c.valor, 0)
 
   return (
     <div className="min-h-screen">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-stone-400 hover:text-stone-700">←</Link>
+            <Link href="/pacientes" className="text-stone-400 hover:text-stone-700">←</Link>
             <div>
               <h1 className="font-semibold leading-tight">{paciente.nome}</h1>
               <p className="text-xs text-stone-400">{paciente.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(paciente.data_nascimento)}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {profile?.role !== 'assistente' && (
+            {podeEditar && (
               <Link href={`/pacientes/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
                 Editar
               </Link>
@@ -140,7 +214,10 @@ export default function PacientePage() {
           </div>
         </div>
       </header>
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+
+      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-28 md:pb-6">
+
+        {/* Formulário nova medição */}
         {showForm && (
           <form onSubmit={handleAddMedicao} className="bg-white border border-green-200 rounded-2xl p-5 space-y-4">
             <h2 className="font-semibold text-stone-700">Nova medição</h2>
@@ -164,6 +241,8 @@ export default function PacientePage() {
             </div>
           </form>
         )}
+
+        {/* Cards resumo nutricional */}
         {ultima && ageAtLast !== null && (
           <div className="grid grid-cols-3 gap-3">
             {[
@@ -183,6 +262,8 @@ export default function PacientePage() {
             })}
           </div>
         )}
+
+        {/* Curvas de crescimento */}
         {medicoes.length > 0 && (
           <div>
             <div className="flex gap-2 mb-3">
@@ -196,6 +277,8 @@ export default function PacientePage() {
             <CurvaChart paciente={paciente} medicoes={medicoes} tipo={activeTab} />
           </div>
         )}
+
+        {/* Histórico de medições */}
         <div>
           <h2 className="font-semibold text-stone-700 mb-3">📋 Histórico de medições</h2>
           {medicoes.length === 0 ? (
@@ -243,6 +326,116 @@ export default function PacientePage() {
             </div>
           )}
         </div>
+
+        {/* ── Seção financeira ── */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-stone-700">💰 Financeiro</h2>
+            {podeEditar && (
+              <button
+                onClick={() => { setShowConsultaForm(s => !s); setErroConsulta('') }}
+                className="text-sm text-green-600 font-medium hover:underline"
+              >
+                {showConsultaForm ? 'Cancelar' : '+ Consulta'}
+              </button>
+            )}
+          </div>
+
+          {/* Resumo financeiro do paciente */}
+          {consultas.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-white border border-stone-100 rounded-xl p-3">
+                <p className="text-base font-bold text-green-700">{fmt(totalPago)}</p>
+                <p className="text-xs text-stone-400 mt-0.5">Recebido</p>
+              </div>
+              <div className="bg-white border border-stone-100 rounded-xl p-3">
+                <p className="text-base font-bold text-yellow-600">{fmt(totalPendente)}</p>
+                <p className="text-xs text-stone-400 mt-0.5">Pendente</p>
+              </div>
+            </div>
+          )}
+
+          {/* Formulário nova consulta */}
+          {showConsultaForm && (
+            <form onSubmit={handleAddConsulta} className="bg-white border border-green-200 rounded-2xl p-4 space-y-3 mb-4">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Data</label>
+                  <input type="date" value={consultaForm.data} onChange={e => setConsultaForm(f => ({ ...f, data: e.target.value }))} required className="w-full text-sm" />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Valor (R$)</label>
+                  <input type="text" inputMode="decimal" placeholder="0,00" value={consultaForm.valor} onChange={e => setConsultaForm(f => ({ ...f, valor: e.target.value }))} required className="w-full text-sm" />
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Status</label>
+                  <select value={consultaForm.status} onChange={e => setConsultaForm(f => ({ ...f, status: e.target.value as Consulta['status'] }))} className="w-full text-sm">
+                    <option value="pendente">Pendente</option>
+                    <option value="pago">Pago</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Descrição</label>
+                  <input type="text" placeholder="Ex: Retorno…" value={consultaForm.descricao} onChange={e => setConsultaForm(f => ({ ...f, descricao: e.target.value }))} className="w-full text-sm" />
+                </div>
+              </div>
+              {erroConsulta && <p className="text-sm text-red-500">{erroConsulta}</p>}
+              <button type="submit" disabled={savingConsulta} className="w-full bg-green-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-green-700 disabled:opacity-50">
+                {savingConsulta ? 'Salvando…' : 'Salvar consulta'}
+              </button>
+            </form>
+          )}
+
+          {/* Lista de consultas */}
+          {consultas.length === 0 && !showConsultaForm ? (
+            <div className="bg-white border border-stone-100 rounded-xl p-6 text-center text-stone-400">
+              <p className="text-sm">Nenhuma consulta registrada.</p>
+              {podeEditar && (
+                <button onClick={() => setShowConsultaForm(true)} className="mt-2 text-green-600 text-sm hover:underline">
+                  Registrar primeira consulta →
+                </button>
+              )}
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {consultas.map(c => (
+                <li key={c.id} className="bg-white border border-stone-100 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-stone-800">
+                      {new Date(c.data + 'T12:00:00').toLocaleDateString('pt-BR')}
+                      {c.descricao ? <span className="text-stone-400 font-normal"> · {c.descricao}</span> : null}
+                    </p>
+                    <p className="text-xs text-stone-400 mt-0.5">{fmt(c.valor)}</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {podeEditar ? (
+                      <select
+                        value={c.status}
+                        onChange={e => handleConsultaStatus(c.id, e.target.value as Consulta['status'])}
+                        className={`text-xs font-medium border rounded-full px-2.5 py-1 ${STATUS_COLOR[c.status]}`}
+                      >
+                        <option value="pendente">Pendente</option>
+                        <option value="pago">Pago</option>
+                        <option value="cancelado">Cancelado</option>
+                      </select>
+                    ) : (
+                      <span className={`text-xs font-medium border rounded-full px-2.5 py-1 ${STATUS_COLOR[c.status]}`}>
+                        {STATUS_LABEL[c.status]}
+                      </span>
+                    )}
+                    {podeEditar && (
+                      <button onClick={() => handleDeleteConsulta(c.id)} className="text-stone-300 hover:text-red-400 text-xs p-1">✕</button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
       </main>
     </div>
   )
