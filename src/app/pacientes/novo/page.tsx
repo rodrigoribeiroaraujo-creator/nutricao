@@ -40,7 +40,9 @@ export default function NovoPaciente() {
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link href="/" className="text-stone-400 hover:text-stone-700">←</Link>
+          <Link href="/" className="flex-shrink-0 text-orange-700">
+            <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+          </Link>
           <h1 className="font-semibold text-lg">Novo paciente</h1>
         </div>
       </header>

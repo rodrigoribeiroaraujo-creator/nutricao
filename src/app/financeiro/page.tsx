@@ -119,7 +119,12 @@ export default function FinanceiroPage() {
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
-          <h1 className="font-semibold text-base text-stone-800">Financeiro</h1>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex-shrink-0 text-orange-700">
+              <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+            </Link>
+            <h1 className="font-semibold text-base text-stone-800">Financeiro</h1>
+          </div>
           {podeEditar && (
             <button
               onClick={() => { setShowModal(true); setFormError('') }}

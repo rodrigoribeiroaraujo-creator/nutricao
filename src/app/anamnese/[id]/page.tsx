@@ -73,7 +73,9 @@ export default function AnamneseDetailPage() {
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/anamnese" className="text-stone-400 hover:text-stone-700">←</Link>
+            <Link href="/" className="flex-shrink-0 text-orange-700">
+              <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+            </Link>
             <div>
               <h1 className="font-semibold text-base text-stone-800 truncate max-w-[180px]">{anamnese.nome_paciente}</h1>
               <span className="text-xs text-stone-400">

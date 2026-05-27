@@ -197,7 +197,9 @@ export default function PacientePage() {
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/pacientes" className="text-stone-400 hover:text-stone-700">←</Link>
+            <Link href="/" className="flex-shrink-0 text-orange-700">
+              <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+            </Link>
             <div>
               <h1 className="font-semibold leading-tight">{paciente.nome}</h1>
               <p className="text-xs text-stone-400">{paciente.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(paciente.data_nascimento)}</p>

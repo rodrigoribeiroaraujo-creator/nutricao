@@ -49,7 +49,12 @@ export default function PacientesPage() {
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
-          <span className="font-semibold text-base text-stone-800">Pacientes</span>
+          <div className="flex items-center gap-2">
+            <Link href="/" className="flex-shrink-0 text-orange-700">
+              <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+            </Link>
+            <span className="font-semibold text-base text-stone-800">Pacientes</span>
+          </div>
           {podeAdicionarPaciente && (
             <Link href="/pacientes/novo" className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
               + Novo

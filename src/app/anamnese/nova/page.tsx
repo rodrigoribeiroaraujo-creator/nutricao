@@ -420,7 +420,9 @@ export default function NovaAnamnesePage() {
     <div className="min-h-dvh flex flex-col md:pl-56 pb-28 md:pb-0">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-3 flex items-center gap-3">
-          <Link href="/anamnese" className="text-stone-400 hover:text-stone-700">←</Link>
+          <Link href="/" className="flex-shrink-0 text-orange-700">
+            <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+          </Link>
           <div>
             <h1 className="font-semibold text-base text-stone-800">Nova Anamnese</h1>
             <p className="text-xs text-stone-400">Etapa {step} de 5 — {STEPS[step - 1]}</p>
