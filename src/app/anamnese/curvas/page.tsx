@@ -1,7 +1,7 @@
 'use client'
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 
 type ChartTipo = 'imc' | 'peso' | 'altura'
@@ -35,6 +35,9 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
   const { label, zone } = classifyPercentile(val, ageY, dataset, s)
   const nutritionalStatus = getNutritionalStatus(zone, tipo)
   const patientPoint = [{ age: parseFloat(ageY.toFixed(2)), val }]
+
+  const yMin = parseFloat((Math.min(...p3) * 0.94).toFixed(1))
+  const yMax = parseFloat((Math.max(...p97) * 1.04).toFixed(1))
 
   const idadeStr = ageY < 2
     ? `${Math.round(ageY * 12)} meses`
@@ -102,27 +105,29 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
         <p className="text-xs text-stone-400 font-medium uppercase tracking-wider mb-3">
           {tipo === 'imc' ? 'IMC' : tipo === 'peso' ? 'Peso' : 'Altura'} × Idade — OMS ({sexo === 'M' ? 'Masculino' : 'Feminino'})
         </p>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart margin={{ top: 8, right: 12, bottom: 4, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
             <XAxis dataKey="age" type="number" domain={['dataMin', 'dataMax']}
               tickFormatter={v => ageY <= 2 ? `${Math.round(v * 12)}m` : `${parseFloat(v).toFixed(0)}a`}
-              tick={{ fontSize: 10 }} />
-            <YAxis tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={32} />
+              tick={{ fontSize: 10 }} tickLine={false} axisLine={{ stroke: '#d6d3d1' }} />
+            <YAxis domain={[yMin, yMax]} tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={34}
+              tickLine={false} axisLine={false} />
             <Tooltip formatter={(v: any) => [`${parseFloat(v).toFixed(1)} ${unit}`]} />
-            <Line data={curveData} dataKey="p97" stroke="#fca5a5" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="P97" />
-            <Line data={curveData} dataKey="p85" stroke="#fcd34d" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P85" />
-            <Line data={curveData} dataKey="p50" stroke="#86efac" strokeWidth={2} dot={false} name="P50" />
-            <Line data={curveData} dataKey="p15" stroke="#fcd34d" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P15" />
-            <Line data={curveData} dataKey="p3" stroke="#fca5a5" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="P3" />
-            <Line data={patientPoint} dataKey="val" stroke="#16a34a" strokeWidth={0}
-              dot={{ fill: '#16a34a', r: 7, strokeWidth: 2.5, stroke: '#fff' }} name="Paciente" />
+            <Line data={curveData} dataKey="p97" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P97" />
+            <Line data={curveData} dataKey="p85" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P85" />
+            <Line data={curveData} dataKey="p50" stroke="#16a34a" strokeWidth={2.5} dot={false} name="P50" />
+            <Line data={curveData} dataKey="p15" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P15" />
+            <Line data={curveData} dataKey="p3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P3" />
+            <Line data={patientPoint} dataKey="val" stroke="#1d4ed8" strokeWidth={0}
+              dot={{ fill: '#1d4ed8', r: 7, strokeWidth: 2.5, stroke: '#fff' }} name="Paciente" />
           </LineChart>
         </ResponsiveContainer>
-        <div className="flex items-center gap-4 mt-2 flex-wrap">
-          {[['#fca5a5', 'P3 / P97'], ['#fcd34d', 'P15 / P85'], ['#86efac', 'P50'], ['#16a34a', 'Paciente']].map(([color, label]) => (
-            <div key={label} className="flex items-center gap-1.5">
+        <div className="flex items-center gap-4 mt-3 flex-wrap">
+          {[['#ef4444', 'P3 / P97'], ['#f97316', 'P15 / P85'], ['#16a34a', 'P50 (mediana)'], ['#1d4ed8', 'Paciente']].map(([color, lbl]) => (
+            <div key={lbl} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
-              <span className="text-xs text-stone-400">{label}</span>
+              <span className="text-xs text-stone-400">{lbl}</span>
             </div>
           ))}
         </div>
