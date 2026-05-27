@@ -16,12 +16,24 @@ const STATUS_LABEL: Record<Profile['status'], string> = {
   blocked: 'Bloqueado',
 }
 
+type NewUserForm = {
+  email: string
+  password: string
+  role: Profile['role']
+  status: Profile['status']
+}
+
 export default function AdminUsuariosPage() {
   const router = useRouter()
   const [myProfile, setMyProfile] = useState<Profile | null>(null)
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState<string | null>(null)
+
+  const [showModal, setShowModal] = useState(false)
+  const [form, setForm] = useState<NewUserForm>({ email: '', password: '', role: 'nutricionista', status: 'active' })
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState('')
 
   useEffect(() => {
     getSession().then(async session => {
@@ -40,6 +52,34 @@ export default function AdminUsuariosPage() {
     setSaving(null)
   }
 
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault()
+    setCreating(true)
+    setCreateError('')
+    try {
+      const session = await getSession()
+      if (!session) throw new Error('Sessão expirada')
+      const res = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(form),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Erro ao criar usuário')
+      const updated = await getProfiles()
+      setProfiles(updated)
+      setShowModal(false)
+      setForm({ email: '', password: '', role: 'nutricionista', status: 'active' })
+    } catch (err: unknown) {
+      setCreateError(err instanceof Error ? err.message : 'Erro ao criar usuário')
+    } finally {
+      setCreating(false)
+    }
+  }
+
   if (!myProfile) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
@@ -51,8 +91,14 @@ export default function AdminUsuariosPage() {
   return (
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="px-4 py-4">
+        <div className="px-4 py-4 flex items-center justify-between">
           <h1 className="font-semibold text-base text-stone-800">Usuários</h1>
+          <button
+            onClick={() => { setShowModal(true); setCreateError('') }}
+            className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700"
+          >
+            + Novo
+          </button>
         </div>
       </header>
 
@@ -108,6 +154,93 @@ export default function AdminUsuariosPage() {
       </main>
 
       <BottomNav profile={myProfile} />
+
+      {/* Modal novo usuário */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40"
+          onClick={() => setShowModal(false)}
+        >
+          <div
+            className="bg-white w-full md:max-w-sm md:rounded-2xl rounded-t-2xl px-6 pt-6"
+            style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-semibold text-stone-800">Novo usuário</h2>
+              <button onClick={() => setShowModal(false)} className="text-stone-400 hover:text-stone-600 text-xl leading-none">✕</button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-3 pb-2">
+              <div>
+                <label className="text-xs text-stone-500 block mb-1">E-mail</label>
+                <input
+                  type="email"
+                  placeholder="email@exemplo.com"
+                  value={form.email}
+                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  required
+                  className="w-full"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-stone-500 block mb-1">Senha</label>
+                <input
+                  type="password"
+                  placeholder="Mínimo 6 caracteres"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  required
+                  minLength={6}
+                  className="w-full"
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Papel</label>
+                  <select
+                    value={form.role}
+                    onChange={e => setForm(f => ({ ...f, role: e.target.value as Profile['role'] }))}
+                    className="w-full text-sm"
+                  >
+                    <option value="nutricionista">Nutricionista</option>
+                    <option value="assistente">Assistente</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs text-stone-500 block mb-1">Status</label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm(f => ({ ...f, status: e.target.value as Profile['status'] }))}
+                    className="w-full text-sm"
+                  >
+                    <option value="active">Ativo</option>
+                    <option value="pending">Pendente</option>
+                    <option value="blocked">Bloqueado</option>
+                  </select>
+                </div>
+              </div>
+
+              {createError && (
+                <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{createError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={creating}
+                className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {creating ? 'Criando...' : 'Criar usuário'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
