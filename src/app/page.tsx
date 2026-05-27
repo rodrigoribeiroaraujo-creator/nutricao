@@ -32,6 +32,15 @@ export default function Home() {
   const [anamnesesCount, setAnamnesesCount] = useState(0)
   const [consultas, setConsultas] = useState<Consulta[]>([])
   const [loading, setLoading] = useState(true)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const el = document.getElementById('main-scroll')
+    if (!el) return
+    const onScroll = () => setScrolled(el.scrollTop > 8)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     getSession().then(async session => {
@@ -73,7 +82,7 @@ export default function Home() {
 
       {/* ── TopAppBar ── */}
       <header
-        className="sticky top-0 z-40 bg-stone-50 flex items-center justify-between px-6 h-16"
+        className={`sticky top-0 z-40 bg-stone-50 flex items-center justify-between px-6 h-16 transition-shadow duration-200 ${scrolled ? 'shadow-sm border-b border-stone-200' : ''}`}
         style={{ paddingTop: 'env(safe-area-inset-top)', fontFamily: 'Manrope, sans-serif' }}
       >
         <div className="flex items-center gap-3">
@@ -95,6 +104,7 @@ export default function Home() {
 
       {/* ── Main ── */}
       <main
+        id="main-scroll"
         className="flex-1 px-6 py-6 pb-28 md:pb-10 overflow-y-auto"
         style={{ fontFamily: 'Manrope, sans-serif' }}
       >
