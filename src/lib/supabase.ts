@@ -204,6 +204,16 @@ export async function getConsultas() {
   return data as Consulta[]
 }
 
+export async function getConsultasByPaciente(pacienteId: string) {
+  const { data, error } = await supabase
+    .from('consultas')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('data', { ascending: false })
+  if (error) throw error
+  return data as Consulta[]
+}
+
 export async function createConsulta(c: Omit<Consulta, 'id' | 'created_at' | 'pacientes'>) {
   const { data, error } = await supabase.from('consultas').insert(c).select().single()
   if (error) throw error
