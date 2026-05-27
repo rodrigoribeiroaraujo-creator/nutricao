@@ -183,3 +183,39 @@ export async function deleteAnamneseTea(id: string) {
   const { error } = await supabase.from('anamneses_tea').delete().eq('id', id)
   if (error) throw error
 }
+
+export type Consulta = {
+  id: string
+  paciente_id: string | null
+  data: string
+  valor: number
+  status: 'pago' | 'pendente' | 'cancelado'
+  descricao?: string | null
+  created_at: string
+  pacientes?: { nome: string } | null
+}
+
+export async function getConsultas() {
+  const { data, error } = await supabase
+    .from('consultas')
+    .select('*, pacientes(nome)')
+    .order('data', { ascending: false })
+  if (error) throw error
+  return data as Consulta[]
+}
+
+export async function createConsulta(c: Omit<Consulta, 'id' | 'created_at' | 'pacientes'>) {
+  const { data, error } = await supabase.from('consultas').insert(c).select().single()
+  if (error) throw error
+  return data as Consulta
+}
+
+export async function updateConsultaStatus(id: string, status: Consulta['status']) {
+  const { error } = await supabase.from('consultas').update({ status }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteConsulta(id: string) {
+  const { error } = await supabase.from('consultas').delete().eq('id', id)
+  if (error) throw error
+}
