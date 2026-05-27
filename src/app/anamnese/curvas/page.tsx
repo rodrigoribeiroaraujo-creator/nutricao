@@ -2,7 +2,7 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries } from '@/lib/who'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 
 type ChartTipo = 'imc' | 'peso' | 'altura'
 
@@ -10,6 +10,12 @@ function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50 border-red-200'
   if (zone === 'low' || zone === 'high') return 'text-amber-600 bg-amber-50 border-amber-200'
   return 'text-green-700 bg-green-50 border-green-200'
+}
+
+function zoneIcon(zone: string) {
+  if (zone === 'critical_low' || zone === 'critical_high') return '🔴'
+  if (zone === 'low' || zone === 'high') return '🟡'
+  return '🟢'
 }
 
 function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
@@ -27,6 +33,7 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
   const val = tipo === 'imc' ? imc : tipo === 'peso' ? pesoKg : altCm
   const unit = tipo === 'imc' ? 'kg/m²' : tipo === 'peso' ? 'kg' : 'cm'
   const { label, zone } = classifyPercentile(val, ageY, dataset, s)
+  const nutritionalStatus = getNutritionalStatus(zone, tipo)
   const patientPoint = [{ age: parseFloat(ageY.toFixed(2)), val }]
 
   const idadeStr = ageY < 2
@@ -78,9 +85,17 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
         )}
       </div>
 
-      <div className={`border rounded-xl px-4 py-3 flex items-center justify-between ${zoneColor(zone)}`}>
-        <p className="text-sm font-medium">Classificação</p>
-        <p className="text-sm font-semibold">{label}</p>
+      <div className={`border rounded-2xl px-5 py-4 ${zoneColor(zone)}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide opacity-60">Estado Nutricional</p>
+            <p className="text-xl font-bold mt-0.5">{zoneIcon(zone)} {nutritionalStatus}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs opacity-60">Percentil</p>
+            <p className="text-sm font-semibold mt-0.5">{label}</p>
+          </div>
+        </div>
       </div>
 
       <div className="bg-white border border-stone-100 rounded-xl p-4">

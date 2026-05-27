@@ -118,6 +118,34 @@ export const WHO_ALTURA: Record<string, GenderData> = {
   },
 }
 
+const NUTRITIONAL_STATUS: Record<'imc' | 'peso' | 'altura', Record<string, string>> = {
+  imc: {
+    critical_low:  'Magreza Acentuada',
+    low:           'Magreza',
+    normal:        'Eutrofia',
+    high:          'Sobrepeso',
+    critical_high: 'Obesidade',
+  },
+  peso: {
+    critical_low:  'Muito Baixo Peso',
+    low:           'Baixo Peso',
+    normal:        'Peso Adequado',
+    high:          'Peso Elevado',
+    critical_high: 'Peso Muito Elevado',
+  },
+  altura: {
+    critical_low:  'Baixa Estatura',
+    low:           'Risco de Baixa Estatura',
+    normal:        'Estatura Adequada',
+    high:          'Estatura Elevada',
+    critical_high: 'Estatura Muito Elevada',
+  },
+}
+
+export function getNutritionalStatus(zone: string, tipo: 'imc' | 'peso' | 'altura'): string {
+  return NUTRITIONAL_STATUS[tipo][zone] ?? zone
+}
+
 function interp(ages: number[], arr: number[], age: number): number {
   if (age <= ages[0]) return arr[0]
   if (age >= ages[ages.length - 1]) return arr[arr.length - 1]

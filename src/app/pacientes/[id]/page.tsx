@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPaciente, getMedicoes, createMedicao, deleteMedicao, getSession, getProfile, type Paciente, type Medicao, type Profile } from '@/lib/supabase'
-import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries } from '@/lib/who'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
@@ -154,16 +154,20 @@ export default function PacientePage() {
         {ultima && ageAtLast !== null && (
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: 'IMC', value: `${ultima.imc?.toFixed(1)}`, sub: ultima.imc_percentil, zone: classifyPercentile(ultima.imc, ageAtLast, WHO_IMC, paciente.sexo).zone },
-              { label: 'Peso', value: `${ultima.peso_kg} kg`, sub: ultima.peso_percentil, zone: classifyPercentile(ultima.peso_kg, ageAtLast, WHO_PESO, paciente.sexo).zone },
-              { label: 'Altura', value: `${ultima.altura_cm} cm`, sub: ultima.altura_percentil, zone: classifyPercentile(ultima.altura_cm, ageAtLast, WHO_ALTURA, paciente.sexo).zone },
-            ].map(c => (
-              <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-4">
-                <p className="text-xs text-stone-400 mb-1">{c.label}</p>
-                <p className="font-semibold text-stone-800">{c.value}</p>
-                {c.sub && <span className={`text-xs mt-1 inline-block px-2 py-0.5 rounded-full font-medium ${zoneColor(c.zone)}`}>{c.sub}</span>}
-              </div>
-            ))}
+              { label: 'IMC', value: `${ultima.imc?.toFixed(1)}`, unit: 'kg/m²', tipo: 'imc' as const, dataset: WHO_IMC, raw: ultima.imc },
+              { label: 'Peso', value: `${ultima.peso_kg}`, unit: 'kg', tipo: 'peso' as const, dataset: WHO_PESO, raw: ultima.peso_kg },
+              { label: 'Altura', value: `${ultima.altura_cm}`, unit: 'cm', tipo: 'altura' as const, dataset: WHO_ALTURA, raw: ultima.altura_cm },
+            ].map(c => {
+              const { zone } = classifyPercentile(c.raw, ageAtLast, c.dataset, paciente.sexo)
+              const status = getNutritionalStatus(zone, c.tipo)
+              return (
+                <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-3">
+                  <p className="text-xs text-stone-400 mb-1">{c.label}</p>
+                  <p className="font-semibold text-stone-800 text-sm">{c.value} <span className="text-xs font-normal text-stone-400">{c.unit}</span></p>
+                  <span className={`text-xs mt-1.5 inline-block px-2 py-0.5 rounded-full font-medium ${zoneColor(zone)}`}>{status}</span>
+                </div>
+              )
+            })}
           </div>
         )}
         {medicoes.length > 0 && (
@@ -212,7 +216,7 @@ export default function PacientePage() {
                         <td className="px-4 py-3 text-right font-medium">{m.peso_kg} kg</td>
                         <td className="px-4 py-3 text-right font-medium">{m.altura_cm} cm</td>
                         <td className="px-4 py-3 text-right font-medium">{m.imc?.toFixed(1)}</td>
-                        <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{m.imc_percentil ?? '–'}</span></td>
+                        <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{getNutritionalStatus(z, 'imc')}</span></td>
                         <td className="px-2 py-3">
                           {profile?.role === 'admin' && (
                             <button onClick={async () => { if(confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) }}} className="text-stone-300 hover:text-red-400 p-1">✕</button>
