@@ -1,7 +1,9 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { getSession, getProfile, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 
@@ -156,6 +158,15 @@ function CurvasContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [tipo, setTipo] = useState<ChartTipo>('imc')
+  const [profile, setProfile] = useState<Profile | null>(null)
+
+  useEffect(() => {
+    getSession().then(async session => {
+      if (!session) { router.replace('/login'); return }
+      const p = await getProfile(session.user.id)
+      setProfile(p)
+    })
+  }, [router])
 
   const pesoKg = parseFloat(searchParams.get('peso') ?? '0')
   const altCm = parseFloat(searchParams.get('alt') ?? '0')
@@ -166,7 +177,7 @@ function CurvasContent() {
   const valid = pesoKg > 0 && altCm > 0 && dataNasc && (sexo === 'M' || sexo === 'F')
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center gap-3">
           <button onClick={() => router.back()} className="text-stone-400 hover:text-stone-700">←</button>
@@ -174,7 +185,7 @@ function CurvasContent() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-5 pb-10 overflow-y-auto">
+      <main className="flex-1 px-4 py-5 pb-28 md:pb-6 overflow-y-auto">
         {!valid ? (
           <div className="text-center py-20 text-stone-400">
             <p className="text-4xl mb-4">📊</p>
@@ -202,6 +213,7 @@ function CurvasContent() {
           </div>
         )}
       </main>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }

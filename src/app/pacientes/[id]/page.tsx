@@ -11,6 +11,7 @@ import {
 } from '@/lib/supabase'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import BottomNav from '@/components/BottomNav'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
   const anos = calcIdadeAnos(dataNasc, dataRef)
@@ -192,8 +193,8 @@ export default function PacientePage() {
   const totalPendente = consultas.filter(c => c.status === 'pendente').reduce((s, c) => s + c.valor, 0)
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
+    <div className="min-h-dvh flex flex-col md:pl-56">
+      <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link href="/pacientes" className="text-stone-400 hover:text-stone-700">←</Link>
@@ -215,7 +216,7 @@ export default function PacientePage() {
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6 pb-28 md:pb-6">
+      <main className="flex-1 max-w-3xl mx-auto px-4 py-6 space-y-6 pb-28 md:pb-6">
 
         {/* Formulário nova medição */}
         {showForm && (
@@ -437,6 +438,7 @@ export default function PacientePage() {
         </div>
 
       </main>
+      <BottomNav profile={profile!} />
     </div>
   )
 }

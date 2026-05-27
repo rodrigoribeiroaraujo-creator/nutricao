@@ -3,7 +3,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { getPaciente, getMedicoes, type Paciente, type Medicao } from '@/lib/supabase'
+import { getPaciente, getMedicoes, getSession, getProfile, type Paciente, type Medicao, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 
 type ChartTipo = 'imc' | 'peso' | 'altura'
@@ -133,19 +134,22 @@ function CurvaView({ paciente, medicao, tipo }: { paciente: Paciente; medicao: M
 export default function PacienteCurvasPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [ultimaMedicao, setUltimaMedicao] = useState<Medicao | null>(null)
   const [tipo, setTipo] = useState<ChartTipo>('imc')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    Promise.all([getPaciente(id), getMedicoes(id)]).then(([p, medicoes]) => {
+    getSession().then(async session => {
+      if (!session) { router.replace('/login'); return }
+      const [prof, p, medicoes] = await Promise.all([getProfile(session.user.id), getPaciente(id), getMedicoes(id)])
+      setProfile(prof)
       setPaciente(p)
-      if (medicoes.length > 0) {
-        setUltimaMedicao(medicoes[medicoes.length - 1])
-      }
-    }).finally(() => setLoading(false))
-  }, [id])
+      if (medicoes.length > 0) setUltimaMedicao(medicoes[medicoes.length - 1])
+      setLoading(false)
+    }).catch(() => router.replace('/'))
+  }, [id, router])
 
   if (loading) {
     return (
@@ -156,7 +160,7 @@ export default function PacienteCurvasPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-stone-50">
+    <div className="min-h-dvh flex flex-col bg-stone-50 md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center gap-3">
           <button onClick={() => router.back()} className="text-stone-400 hover:text-stone-700 text-lg leading-none">←</button>
@@ -169,7 +173,7 @@ export default function PacienteCurvasPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-5 pb-10 overflow-y-auto">
+      <main className="flex-1 px-4 py-5 pb-28 md:pb-6 overflow-y-auto">
         {!ultimaMedicao ? (
           <div className="text-center py-20 text-stone-400">
             <p className="text-4xl mb-4">📊</p>
@@ -192,6 +196,7 @@ export default function PacienteCurvasPage() {
           </div>
         )}
       </main>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }

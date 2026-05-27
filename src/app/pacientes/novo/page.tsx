@@ -1,15 +1,27 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createPaciente } from '@/lib/supabase'
+import { createPaciente, getSession, getProfile, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 
 export default function NovoPaciente() {
   const router = useRouter()
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
   const [form, setForm] = useState({ nome: '', data_nascimento: '', sexo: 'M', observacoes: '' })
+
+  useEffect(() => {
+    getSession().then(async session => {
+      if (!session) { router.replace('/login'); return }
+      const p = await getProfile(session.user.id)
+      if (p.status === 'pending') { router.replace('/pendente'); return }
+      if (p.status === 'blocked') { router.replace('/bloqueado'); return }
+      setProfile(p)
+    })
+  }, [router])
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }
 
@@ -25,14 +37,14 @@ export default function NovoPaciente() {
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
+    <div className="min-h-dvh flex flex-col md:pl-56">
+      <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link href="/" className="text-stone-400 hover:text-stone-700">←</Link>
           <h1 className="font-semibold text-lg">Novo paciente</h1>
         </div>
       </header>
-      <main className="max-w-xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-8 pb-28 md:pb-8">
         <form onSubmit={handleSubmit} className="bg-white border border-stone-100 rounded-2xl p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-stone-600 mb-1.5">Nome completo</label>
@@ -64,6 +76,7 @@ export default function NovoPaciente() {
           </button>
         </form>
       </main>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }

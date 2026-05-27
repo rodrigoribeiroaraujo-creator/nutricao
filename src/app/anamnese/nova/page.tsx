@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { createAnamneseTea, getSession, getProfile } from '@/lib/supabase'
+import { createAnamneseTea, getSession, getProfile, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries } from '@/lib/who'
 
 const STEPS = ['Paciente', 'Antropometria', 'Alimentação', 'Sono e rotina', 'Conduta']
@@ -125,12 +126,14 @@ export default function NovaAnamnesePage() {
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
 
   useEffect(() => {
     getSession().then(async session => {
       if (!session) { router.replace('/login'); return }
       const p = await getProfile(session.user.id)
       if (p.role === 'assistente') { router.replace('/anamnese'); return }
+      setProfile(p)
       setUserId(session.user.id)
     })
   }, [router])
@@ -414,7 +417,7 @@ export default function NovaAnamnesePage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56 pb-28 md:pb-0">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-3 flex items-center gap-3">
           <Link href="/anamnese" className="text-stone-400 hover:text-stone-700">←</Link>
@@ -457,6 +460,7 @@ export default function NovaAnamnesePage() {
           </button>
         )}
       </div>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }
