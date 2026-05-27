@@ -211,6 +211,12 @@ export default function Home() {
               <p className="text-sm font-medium text-stone-700">Anamnese</p>
               <p className="text-xs text-stone-400">Registros e histórico</p>
             </Link>
+            <Link href="/financeiro"
+              className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
+              <span className="text-2xl">💰</span>
+              <p className="text-sm font-medium text-stone-700">Financeiro</p>
+              <p className="text-xs text-stone-400">Consultas e pagamentos</p>
+            </Link>
             {podeAdicionarPaciente && (
               <Link href="/pacientes/novo"
                 className="bg-green-50 border border-green-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-300 hover:shadow-sm transition">
