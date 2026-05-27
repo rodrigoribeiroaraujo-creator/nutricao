@@ -52,7 +52,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
           <span className="font-semibold text-base text-green-700">🌱 NutriCurvas</span>
@@ -64,7 +64,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-28 overflow-y-auto">
+      <main className="flex-1 px-4 py-6 pb-28 md:pb-6 overflow-y-auto md:max-w-3xl md:w-full">
         <input
           type="search"
           placeholder="Buscar paciente..."

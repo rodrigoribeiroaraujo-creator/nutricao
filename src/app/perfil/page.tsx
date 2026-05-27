@@ -38,14 +38,14 @@ export default function PerfilPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4">
           <h1 className="font-semibold text-base text-stone-800">Perfil</h1>
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-28">
+      <main className="flex-1 px-4 py-6 pb-28 md:pb-6 md:max-w-lg md:w-full">
         <div className="flex flex-col items-center py-8">
           <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center text-3xl font-bold text-green-600 mb-4">
             {profile.email.charAt(0).toUpperCase()}

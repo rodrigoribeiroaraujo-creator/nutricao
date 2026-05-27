@@ -21,12 +21,21 @@
   overflow-x: hidden;
 }
 
-@media (min-width: 431px) {
+@media (min-width: 431px) and (max-width: 767px) {
   body {
     background: #d6d3d1 !important;
     min-height: 100vh;
   }
   .app-frame {
     box-shadow: 0 0 60px rgba(0,0,0,0.2);
+  }
+}
+
+@media (min-width: 768px) {
+  body { background: #fafaf9 !important; }
+  .app-frame {
+    max-width: 100% !important;
+    box-shadow: none !important;
+    overflow-x: visible !important;
   }
 }
