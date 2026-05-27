@@ -73,7 +73,7 @@ export default function Home() {
 
       {/* ── TopAppBar ── */}
       <header
-        className="sticky top-0 z-40 bg-stone-50 border-b border-stone-200 flex items-center justify-between px-6 h-16"
+        className="sticky top-0 z-40 bg-stone-50 flex items-center justify-between px-6 h-16"
         style={{ paddingTop: 'env(safe-area-inset-top)', fontFamily: 'Manrope, sans-serif' }}
       >
         <div className="flex items-center gap-3">
