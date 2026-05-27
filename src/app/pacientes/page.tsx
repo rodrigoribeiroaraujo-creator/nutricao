@@ -51,7 +51,7 @@ export default function PacientesPage() {
         <div className="px-4 py-4 flex items-center justify-between">
           <span className="font-semibold text-base text-stone-800">Pacientes</span>
           {podeAdicionarPaciente && (
-            <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+            <Link href="/pacientes/novo" className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
               + Novo
             </Link>
           )}
@@ -73,7 +73,7 @@ export default function PacientesPage() {
           <div className="text-center py-20 text-stone-400">
             <p>Nenhum paciente encontrado.</p>
             {!busca && podeAdicionarPaciente && (
-              <Link href="/pacientes/novo" className="mt-2 inline-block text-green-600 hover:underline">
+              <Link href="/pacientes/novo" className="mt-2 inline-block text-orange-700 hover:underline">
                 Cadastrar primeiro paciente →
               </Link>
             )}
@@ -83,7 +83,7 @@ export default function PacientesPage() {
             {filtrados.map(p => (
               <li key={p.id}>
                 <Link href={`/pacientes/${p.id}`}
-                  className="flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-green-200 hover:shadow-sm transition">
+                  className="flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-orange-200 hover:shadow-sm transition">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${p.sexo === 'M' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                     {p.nome.charAt(0).toUpperCase()}
                   </div>

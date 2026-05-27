@@ -13,7 +13,7 @@ function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50 border-red-200'
   if (zone === 'low' || zone === 'very_high') return 'text-amber-600 bg-amber-50 border-amber-200'
   if (zone === 'high') return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-  return 'text-green-700 bg-green-50 border-green-200'
+  return 'text-orange-800 bg-orange-50 border-orange-200'
 }
 
 function zoneIcon(zone: string) {
@@ -197,7 +197,7 @@ function CurvasContent() {
             <div className="flex gap-2">
               {(['imc', 'peso', 'altura'] as ChartTipo[]).map(t => (
                 <button key={t} type="button" onClick={() => setTipo(t)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${tipo === t ? 'bg-green-600 text-white' : 'bg-white border border-stone-200 text-stone-500'}`}>
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${tipo === t ? 'bg-orange-700 text-white' : 'bg-white border border-stone-200 text-stone-500'}`}>
                   {t === 'imc' ? 'IMC' : t === 'peso' ? 'Peso' : 'Altura'}
                 </button>
               ))}

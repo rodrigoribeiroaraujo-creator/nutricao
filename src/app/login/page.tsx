@@ -61,12 +61,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-green-600 md:items-center md:justify-center md:bg-stone-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="min-h-dvh flex flex-col bg-orange-700 md:items-center md:justify-center md:bg-stone-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Topo com branding — só mobile */}
       <div className="flex-1 md:hidden flex flex-col items-center justify-end pb-10 px-4">
         <span className="text-6xl mb-4">🌱</span>
         <h1 className="text-3xl font-bold text-white">KR Nutri Pro</h1>
-        <p className="text-sm text-green-200 mt-1">Avaliação de Crescimento OMS</p>
+        <p className="text-sm text-orange-200 mt-1">Avaliação de Crescimento OMS</p>
       </div>
 
       {/* Card do formulário */}
@@ -74,7 +74,7 @@ export default function LoginPage() {
         {/* Logo — só desktop */}
         <div className="hidden md:block text-center mb-8">
           <span className="text-5xl">🌱</span>
-          <h1 className="text-2xl font-semibold text-green-700 mt-3">KR Nutri Pro</h1>
+          <h1 className="text-2xl font-semibold text-orange-800 mt-3">KR Nutri Pro</h1>
           <p className="text-sm text-stone-400 mt-1">Avaliação de Crescimento OMS</p>
         </div>
         {/* Tabs */}
@@ -139,7 +139,7 @@ export default function LoginPage() {
             </p>
           )}
           {message && (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-lg px-3 py-2">
+            <p className="text-sm text-orange-800 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2">
               {message}
             </p>
           )}
@@ -147,7 +147,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-orange-700 text-white py-3 rounded-xl font-medium hover:bg-orange-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Aguarde...' : tab === 'login' ? 'Entrar' : 'Criar conta'}
           </button>

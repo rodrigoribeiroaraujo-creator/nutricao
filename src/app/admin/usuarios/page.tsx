@@ -7,7 +7,7 @@ import BottomNav from '@/components/BottomNav'
 
 const STATUS_COLOR: Record<Profile['status'], string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  active: 'bg-green-50 text-green-700 border-green-200',
+  active: 'bg-orange-50 text-orange-800 border-orange-200',
   blocked: 'bg-red-50 text-red-700 border-red-200',
 }
 
@@ -96,7 +96,7 @@ export default function AdminUsuariosPage() {
           <h1 className="font-semibold text-base text-stone-800">Usuários</h1>
           <button
             onClick={() => { setShowModal(true); setCreateError('') }}
-            className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700"
+            className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800"
           >
             + Novo
           </button>
@@ -234,7 +234,7 @@ export default function AdminUsuariosPage() {
               <button
                 type="submit"
                 disabled={creating}
-                className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-orange-700 text-white py-3 rounded-xl font-medium hover:bg-orange-800 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? 'Criando...' : 'Criar usuário'}
               </button>

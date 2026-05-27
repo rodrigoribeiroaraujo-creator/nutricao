@@ -45,7 +45,7 @@ export default function AnamnesePage() {
         <div className="px-4 py-4 flex items-center justify-between">
           <h1 className="font-semibold text-base text-stone-800">Anamneses</h1>
           {profile.role !== 'assistente' && (
-            <Link href="/anamnese/nova" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+            <Link href="/anamnese/nova" className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
               + Nova
             </Link>
           )}
@@ -60,7 +60,7 @@ export default function AnamnesePage() {
             <p className="text-4xl mb-4">📋</p>
             <p className="text-sm">Nenhuma anamnese registrada.</p>
             {profile.role !== 'assistente' && (
-              <Link href="/anamnese/nova" className="mt-2 inline-block text-green-600 text-sm hover:underline">
+              <Link href="/anamnese/nova" className="mt-2 inline-block text-orange-700 text-sm hover:underline">
                 Registrar primeira anamnese →
               </Link>
             )}
@@ -68,13 +68,13 @@ export default function AnamnesePage() {
         ) : (
           <ul className="space-y-3">
             {anamneses.map(a => (
-              <li key={a.id} className="bg-white border border-stone-100 rounded-xl hover:border-green-200 transition">
+              <li key={a.id} className="bg-white border border-stone-100 rounded-xl hover:border-orange-200 transition">
                 <div className="flex items-center">
                   <Link href={`/anamnese/${a.id}`} className="flex-1 p-4">
                     <p className="font-medium text-stone-800 text-sm">{a.nome_paciente}</p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {a.nivel_tea ? (
-                        <span className="text-xs bg-green-50 text-green-700 border border-green-200 rounded-full px-2 py-0.5">
+                        <span className="text-xs bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-2 py-0.5">
                           TEA — {NIVEL_LABEL[a.nivel_tea] ?? `Nível ${a.nivel_tea}`}
                         </span>
                       ) : (

@@ -23,7 +23,7 @@ function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50'
   if (zone === 'low' || zone === 'very_high') return 'text-amber-600 bg-amber-50'
   if (zone === 'high') return 'text-yellow-600 bg-yellow-50'
-  return 'text-green-700 bg-green-50'
+  return 'text-orange-800 bg-orange-50'
 }
 
 function fmt(valor: number) {
@@ -37,7 +37,7 @@ const STATUS_LABEL: Record<Consulta['status'], string> = {
 }
 
 const STATUS_COLOR: Record<Consulta['status'], string> = {
-  pago: 'bg-green-50 text-green-700 border-green-200',
+  pago: 'bg-orange-50 text-orange-800 border-orange-200',
   pendente: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   cancelado: 'bg-red-50 text-red-500 border-red-200',
 }
@@ -209,7 +209,7 @@ export default function PacientePage() {
                 Editar
               </Link>
             )}
-            <button onClick={() => setShowForm(s => !s)} className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
+            <button onClick={() => setShowForm(s => !s)} className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
               + Medição
             </button>
           </div>
@@ -220,7 +220,7 @@ export default function PacientePage() {
 
         {/* Formulário nova medição */}
         {showForm && (
-          <form onSubmit={handleAddMedicao} className="bg-white border border-green-200 rounded-2xl p-5 space-y-4">
+          <form onSubmit={handleAddMedicao} className="bg-white border border-orange-200 rounded-2xl p-5 space-y-4">
             <h2 className="font-semibold text-stone-700">Nova medição</h2>
             <div className="grid grid-cols-2 gap-3">
               <div><label className="block text-xs font-medium text-stone-500 mb-1">Data</label>
@@ -235,7 +235,7 @@ export default function PacientePage() {
               <input type="text" value={form.observacoes} onChange={e => setForm(f => ({...f, observacoes: e.target.value}))} className="w-full" /></div>
             {erro && <p className="text-sm text-red-500">{erro}</p>}
             <div className="flex gap-2">
-              <button type="submit" disabled={saving} className="flex-1 bg-green-600 text-white font-medium py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50 text-sm">
+              <button type="submit" disabled={saving} className="flex-1 bg-orange-700 text-white font-medium py-2.5 rounded-lg hover:bg-orange-800 disabled:opacity-50 text-sm">
                 {saving ? 'Salvando...' : 'Salvar medição'}
               </button>
               <button type="button" onClick={() => setShowForm(false)} className="px-4 border border-stone-200 rounded-lg text-sm text-stone-500">Cancelar</button>
@@ -270,7 +270,7 @@ export default function PacientePage() {
             <div className="flex gap-2 mb-3">
               {(['imc','peso','altura'] as const).map(t => (
                 <button key={t} onClick={() => setActiveTab(t)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${activeTab === t ? 'bg-green-600 text-white' : 'bg-white border border-stone-200 text-stone-500'}`}>
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${activeTab === t ? 'bg-orange-700 text-white' : 'bg-white border border-stone-200 text-stone-500'}`}>
                   {t === 'imc' ? 'IMC' : t === 'peso' ? 'Peso' : 'Altura'}
                 </button>
               ))}
@@ -285,7 +285,7 @@ export default function PacientePage() {
           {medicoes.length === 0 ? (
             <div className="bg-white border border-stone-100 rounded-xl p-8 text-center text-stone-400">
               <p className="text-sm">Nenhuma medição registrada.</p>
-              <button onClick={() => setShowForm(true)} className="mt-2 text-green-600 text-sm hover:underline">Adicionar primeira medição →</button>
+              <button onClick={() => setShowForm(true)} className="mt-2 text-orange-700 text-sm hover:underline">Adicionar primeira medição →</button>
             </div>
           ) : (
             <div className="bg-white border border-stone-100 rounded-xl overflow-hidden">
@@ -308,7 +308,7 @@ export default function PacientePage() {
                       <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                         <td className="px-4 py-3 text-stone-600">
                           {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          {i === 0 && <span className="ml-2 text-xs text-green-500 font-medium">recente</span>}
+                          {i === 0 && <span className="ml-2 text-xs text-orange-600 font-medium">recente</span>}
                         </td>
                         <td className="px-4 py-3 text-right font-medium">{m.peso_kg} kg</td>
                         <td className="px-4 py-3 text-right font-medium">{m.altura_cm} cm</td>
@@ -335,7 +335,7 @@ export default function PacientePage() {
             {podeEditar && (
               <button
                 onClick={() => { setShowConsultaForm(s => !s); setErroConsulta('') }}
-                className="text-sm text-green-600 font-medium hover:underline"
+                className="text-sm text-orange-700 font-medium hover:underline"
               >
                 {showConsultaForm ? 'Cancelar' : '+ Consulta'}
               </button>
@@ -346,7 +346,7 @@ export default function PacientePage() {
           {consultas.length > 0 && (
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-white border border-stone-100 rounded-xl p-3">
-                <p className="text-base font-bold text-green-700">{fmt(totalPago)}</p>
+                <p className="text-base font-bold text-orange-800">{fmt(totalPago)}</p>
                 <p className="text-xs text-stone-400 mt-0.5">Recebido</p>
               </div>
               <div className="bg-white border border-stone-100 rounded-xl p-3">
@@ -358,7 +358,7 @@ export default function PacientePage() {
 
           {/* Formulário nova consulta */}
           {showConsultaForm && (
-            <form onSubmit={handleAddConsulta} className="bg-white border border-green-200 rounded-2xl p-4 space-y-3 mb-4">
+            <form onSubmit={handleAddConsulta} className="bg-white border border-orange-200 rounded-2xl p-4 space-y-3 mb-4">
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-xs text-stone-500 block mb-1">Data</label>
@@ -384,7 +384,7 @@ export default function PacientePage() {
                 </div>
               </div>
               {erroConsulta && <p className="text-sm text-red-500">{erroConsulta}</p>}
-              <button type="submit" disabled={savingConsulta} className="w-full bg-green-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-green-700 disabled:opacity-50">
+              <button type="submit" disabled={savingConsulta} className="w-full bg-orange-700 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-orange-800 disabled:opacity-50">
                 {savingConsulta ? 'Salvando…' : 'Salvar consulta'}
               </button>
             </form>
@@ -395,7 +395,7 @@ export default function PacientePage() {
             <div className="bg-white border border-stone-100 rounded-xl p-6 text-center text-stone-400">
               <p className="text-sm">Nenhuma consulta registrada.</p>
               {podeEditar && (
-                <button onClick={() => setShowConsultaForm(true)} className="mt-2 text-green-600 text-sm hover:underline">
+                <button onClick={() => setShowConsultaForm(true)} className="mt-2 text-orange-700 text-sm hover:underline">
                   Registrar primeira consulta →
                 </button>
               )}

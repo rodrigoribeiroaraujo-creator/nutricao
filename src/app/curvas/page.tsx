@@ -71,7 +71,7 @@ export default function CurvasListPage() {
             {filtrados.map(p => (
               <li key={p.id}>
                 <Link href={`/pacientes/${p.id}/curvas`}
-                  className="flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-green-200 hover:shadow-sm transition">
+                  className="flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-orange-200 hover:shadow-sm transition">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${p.sexo === 'M' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                     {p.nome.charAt(0).toUpperCase()}
                   </div>
@@ -81,7 +81,7 @@ export default function CurvasListPage() {
                       {p.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(p.data_nascimento)}
                     </p>
                   </div>
-                  <span className="text-green-500 text-lg">📈</span>
+                  <span className="text-orange-600 text-lg">📈</span>
                 </Link>
               </li>
             ))}

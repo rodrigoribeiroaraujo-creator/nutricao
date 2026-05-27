@@ -13,7 +13,7 @@ const ROLE_LABEL: Record<Profile['role'], string> = {
 
 const STATUS_COLOR: Record<Profile['status'], string> = {
   pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  active: 'bg-green-50 text-green-700 border-green-200',
+  active: 'bg-orange-50 text-orange-800 border-orange-200',
   blocked: 'bg-red-50 text-red-700 border-red-200',
 }
 
@@ -102,7 +102,7 @@ export default function PerfilPage() {
           {profile.role === 'admin' && (
             <button
               onClick={() => { setShowModal(true); setCreateError('') }}
-              className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700"
+              className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800"
             >
               + Usuário
             </button>
@@ -114,12 +114,12 @@ export default function PerfilPage() {
 
         {/* Card do usuário logado */}
         <div className="bg-white border border-stone-100 rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center text-2xl font-bold text-green-600 flex-shrink-0">
+          <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center text-2xl font-bold text-orange-700 flex-shrink-0">
             {profile.email.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-medium text-stone-800 truncate">{profile.email}</p>
-            <span className="mt-1 inline-block text-xs text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-0.5">
+            <span className="mt-1 inline-block text-xs text-orange-800 bg-orange-50 border border-orange-200 rounded-full px-2.5 py-0.5">
               {ROLE_LABEL[profile.role]}
             </span>
           </div>
@@ -226,7 +226,7 @@ export default function PerfilPage() {
                 </div>
               </div>
               {createError && <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{createError}</p>}
-              <button type="submit" disabled={creating} className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50">
+              <button type="submit" disabled={creating} className="w-full bg-orange-700 text-white py-3 rounded-xl font-medium hover:bg-orange-800 disabled:opacity-50">
                 {creating ? 'Criando...' : 'Criar usuário'}
               </button>
             </form>

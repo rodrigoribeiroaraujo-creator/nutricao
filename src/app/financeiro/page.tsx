@@ -13,7 +13,7 @@ const STATUS_LABEL: Record<Consulta['status'], string> = {
 }
 
 const STATUS_COLOR: Record<Consulta['status'], string> = {
-  pago: 'bg-green-50 text-green-700 border-green-200',
+  pago: 'bg-orange-50 text-orange-800 border-orange-200',
   pendente: 'bg-yellow-50 text-yellow-700 border-yellow-200',
   cancelado: 'bg-red-50 text-red-500 border-red-200',
 }
@@ -123,7 +123,7 @@ export default function FinanceiroPage() {
           {podeEditar && (
             <button
               onClick={() => { setShowModal(true); setFormError('') }}
-              className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700"
+              className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800"
             >
               + Nova
             </button>
@@ -136,7 +136,7 @@ export default function FinanceiroPage() {
         {/* Resumo */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-white border border-stone-100 rounded-2xl p-3 text-center">
-            <p className="text-base font-bold text-green-700">{fmt(totalPago)}</p>
+            <p className="text-base font-bold text-orange-800">{fmt(totalPago)}</p>
             <p className="text-xs text-stone-400 mt-0.5">Recebido</p>
           </div>
           <div className="bg-white border border-stone-100 rounded-2xl p-3 text-center">
@@ -155,7 +155,7 @@ export default function FinanceiroPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${filter === f ? 'bg-green-600 text-white border-green-600' : 'bg-white text-stone-500 border-stone-200 hover:border-stone-300'}`}
+              className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${filter === f ? 'bg-orange-700 text-white border-orange-700' : 'bg-white text-stone-500 border-stone-200 hover:border-stone-300'}`}
             >
               {f === 'todos' ? 'Todos' : STATUS_LABEL[f]}
             </button>
@@ -176,7 +176,7 @@ export default function FinanceiroPage() {
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
                     {c.paciente_id ? (
-                      <Link href={`/pacientes/${c.paciente_id}`} className="font-medium text-stone-800 text-sm truncate hover:text-green-700 block">
+                      <Link href={`/pacientes/${c.paciente_id}`} className="font-medium text-stone-800 text-sm truncate hover:text-orange-800 block">
                         {c.pacientes?.nome ?? 'Paciente'}
                       </Link>
                     ) : (
@@ -264,7 +264,7 @@ export default function FinanceiroPage() {
                 <input type="text" placeholder="Ex: Retorno, Avaliação…" value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} className="w-full text-sm" />
               </div>
               {formError && <p className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{formError}</p>}
-              <button type="submit" disabled={saving} className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50">
+              <button type="submit" disabled={saving} className="w-full bg-orange-700 text-white py-3 rounded-xl font-medium hover:bg-orange-800 disabled:opacity-50">
                 {saving ? 'Salvando…' : 'Salvar'}
               </button>
             </form>

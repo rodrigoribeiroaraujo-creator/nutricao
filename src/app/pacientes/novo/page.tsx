@@ -59,7 +59,7 @@ export default function NovoPaciente() {
             <div className="flex gap-3">
               {[{v:'M',l:'Masculino'},{v:'F',l:'Feminino'}].map(o => (
                 <button key={o.v} type="button" onClick={() => set('sexo', o.v)}
-                  className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition ${form.sexo === o.v ? 'bg-green-600 text-white border-green-600' : 'bg-white text-stone-600 border-stone-200'}`}>
+                  className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition ${form.sexo === o.v ? 'bg-orange-700 text-white border-orange-700' : 'bg-white text-stone-600 border-stone-200'}`}>
                   {o.l}
                 </button>
               ))}
@@ -71,7 +71,7 @@ export default function NovoPaciente() {
           </div>
           {erro && <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
           <button type="submit" disabled={saving}
-            className="w-full bg-green-600 text-white font-medium py-3 rounded-lg hover:bg-green-700 disabled:opacity-50">
+            className="w-full bg-orange-700 text-white font-medium py-3 rounded-lg hover:bg-orange-800 disabled:opacity-50">
             {saving ? 'Salvando...' : 'Cadastrar paciente'}
           </button>
         </form>

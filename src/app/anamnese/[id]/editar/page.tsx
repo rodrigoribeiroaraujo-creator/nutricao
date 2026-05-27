@@ -56,7 +56,7 @@ function RadioGroup({ value, onChange, options }: { value: string; onChange: (v:
     <div className="flex gap-2 flex-wrap">
       {options.map(o => (
         <button key={o.v} type="button" onClick={() => onChange(o.v)}
-          className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition ${value === o.v ? 'bg-green-600 text-white border-green-600' : 'bg-white text-stone-600 border-stone-200'}`}>
+          className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition ${value === o.v ? 'bg-orange-700 text-white border-orange-700' : 'bg-white text-stone-600 border-stone-200'}`}>
           {o.l}
         </button>
       ))}
@@ -67,7 +67,7 @@ function RadioGroup({ value, onChange, options }: { value: string; onChange: (v:
 function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50'
   if (zone === 'low' || zone === 'high') return 'text-amber-600 bg-amber-50'
-  return 'text-green-700 bg-green-50'
+  return 'text-orange-800 bg-orange-50'
 }
 
 type ChartTipo = 'imc' | 'peso' | 'altura'
@@ -250,9 +250,9 @@ export default function EditarAnamnesePage() {
           </div>
           {imc && (
             <button type="button" onClick={abrirCurvas}
-              className="w-full bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between active:opacity-70">
-              <p className="text-xs text-green-600 font-medium">IMC calculado — ver curvas OMS →</p>
-              <p className="text-xl font-bold text-green-700">{imc} <span className="text-sm font-normal">kg/m²</span></p>
+              className="w-full bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center justify-between active:opacity-70">
+              <p className="text-xs text-orange-700 font-medium">IMC calculado — ver curvas OMS →</p>
+              <p className="text-xl font-bold text-orange-800">{imc} <span className="text-sm font-normal">kg/m²</span></p>
             </button>
           )}
           {canShowChart && (
@@ -260,7 +260,7 @@ export default function EditarAnamnesePage() {
               <div className="flex gap-2">
                 {(['imc', 'peso', 'altura'] as ChartTipo[]).map(t => (
                   <button key={t} type="button" onClick={() => setChartTipo(t)}
-                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${chartTipo === t ? 'bg-green-600 text-white' : 'bg-stone-100 text-stone-500'}`}>
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition ${chartTipo === t ? 'bg-orange-700 text-white' : 'bg-stone-100 text-stone-500'}`}>
                     {t === 'imc' ? 'IMC' : t === 'peso' ? 'Peso' : 'Altura'}
                   </button>
                 ))}
@@ -426,14 +426,14 @@ export default function EditarAnamnesePage() {
           </div>
         </div>
         <div className="h-1 bg-stone-100">
-          <div className="h-1 bg-green-500 transition-all duration-300" style={{ width: `${(step / 5) * 100}%` }} />
+          <div className="h-1 bg-orange-600 transition-all duration-300" style={{ width: `${(step / 5) * 100}%` }} />
         </div>
       </header>
 
       <div className="bg-white border-b border-stone-100 px-4 py-2 flex gap-1.5 overflow-x-auto">
         {STEPS.map((s, i) => (
           <button key={s} type="button" onClick={() => setStep(i + 1)}
-            className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition ${step === i + 1 ? 'bg-green-600 text-white' : i + 1 < step ? 'bg-green-100 text-green-700' : 'text-stone-400 bg-stone-100'}`}>
+            className={`flex-shrink-0 text-xs px-3 py-1.5 rounded-full font-medium transition ${step === i + 1 ? 'bg-orange-700 text-white' : i + 1 < step ? 'bg-orange-100 text-orange-800' : 'text-stone-400 bg-stone-100'}`}>
             {i + 1}. {s}
           </button>
         ))}
@@ -450,11 +450,11 @@ export default function EditarAnamnesePage() {
           </button>
         )}
         {step < 5 ? (
-          <button type="button" onClick={() => setStep(s => s + 1)} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-green-700">
+          <button type="button" onClick={() => setStep(s => s + 1)} className="flex-1 bg-orange-700 text-white py-3 rounded-xl font-medium text-sm hover:bg-orange-800">
             Próximo →
           </button>
         ) : (
-          <button type="button" onClick={handleSave} disabled={saving} className="flex-1 bg-green-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-green-700 disabled:opacity-50">
+          <button type="button" onClick={handleSave} disabled={saving} className="flex-1 bg-orange-700 text-white py-3 rounded-xl font-medium text-sm hover:bg-orange-800 disabled:opacity-50">
             {saving ? 'Salvando...' : 'Salvar alterações'}
           </button>
         )}
