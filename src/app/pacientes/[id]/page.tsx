@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getPaciente, getMedicoes, createMedicao, deleteMedicao, getSession, getProfile, type Paciente, type Medicao, type Profile } from '@/lib/supabase'
-import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
@@ -14,7 +14,8 @@ function idadeStr(dataNasc: string, dataRef?: string) {
 
 function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50'
-  if (zone === 'low' || zone === 'high') return 'text-amber-600 bg-amber-50'
+  if (zone === 'low' || zone === 'very_high') return 'text-amber-600 bg-amber-50'
+  if (zone === 'high') return 'text-yellow-600 bg-yellow-50'
   return 'text-green-700 bg-green-50'
 }
 
@@ -22,16 +23,16 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
   if (medicoes.length === 0) return null
   const ageMax = calcIdadeAnos(paciente.data_nascimento)
   const dataset = tipo === 'imc' ? WHO_IMC : tipo === 'peso' ? WHO_PESO : WHO_ALTURA
-  const { ages, p3, p15, p50, p85, p97 } = getChartSeries(dataset, paciente.sexo, ageMax)
-  const curveData = ages.map((age: number, i: number) => ({ age: parseFloat(age.toFixed(2)), p3: p3[i], p15: p15[i], p50: p50[i], p85: p85[i], p97: p97[i] }))
+  const { ages, zm3, zm2, z0, zp2, zp3 } = getChartSeries(dataset, paciente.sexo, ageMax)
+  const curveData = ages.map((age: number, i: number) => ({ age: parseFloat(age.toFixed(2)), zm3: zm3[i], zm2: zm2[i], z0: z0[i], zp2: zp2[i], zp3: zp3[i] }))
   const patientPoints = medicoes.map(m => {
     const ageY = calcIdadeAnos(paciente.data_nascimento, m.data_medicao)
     const val = tipo === 'imc' ? m.imc : tipo === 'peso' ? m.peso_kg : m.altura_cm
     return { age: parseFloat(ageY.toFixed(2)), val }
   })
   const unit = tipo === 'imc' ? 'kg/m²' : tipo === 'peso' ? 'kg' : 'cm'
-  const yMin = parseFloat((Math.min(...p3) * 0.94).toFixed(1))
-  const yMax = parseFloat((Math.max(...p97) * 1.04).toFixed(1))
+  const yMin = parseFloat((Math.min(...zm3) * 0.94).toFixed(1))
+  const yMax = parseFloat((Math.max(...zp3) * 1.04).toFixed(1))
   return (
     <div className="bg-white border border-stone-100 rounded-xl p-4">
       <p className="text-xs text-stone-400 font-medium mb-3 uppercase tracking-wider">
@@ -43,16 +44,16 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
           <XAxis dataKey="age" type="number" domain={['dataMin','dataMax']} tickFormatter={v => ageMax <= 2 ? `${Math.round(v*12)}m` : `${v}a`} tick={{ fontSize: 10 }} tickLine={false} axisLine={{ stroke: '#d6d3d1' }} />
           <YAxis domain={[yMin, yMax]} tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={34} tickLine={false} axisLine={false} />
           <Tooltip formatter={(v: any) => [`${parseFloat(v).toFixed(1)} ${unit}`]} />
-          <Line data={curveData} dataKey="p97" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P97" />
-          <Line data={curveData} dataKey="p85" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P85" />
-          <Line data={curveData} dataKey="p50" stroke="#16a34a" strokeWidth={2.5} dot={false} name="P50" />
-          <Line data={curveData} dataKey="p15" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P15" />
-          <Line data={curveData} dataKey="p3"  stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P3" />
+          <Line data={curveData} dataKey="zp3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="+3 DP" />
+          <Line data={curveData} dataKey="zp2" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="+2 DP" />
+          <Line data={curveData} dataKey="z0"  stroke="#16a34a" strokeWidth={2.5} dot={false} name="Mediana" />
+          <Line data={curveData} dataKey="zm2" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="-2 DP" />
+          <Line data={curveData} dataKey="zm3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="-3 DP" />
           <Line data={patientPoints} dataKey="val" stroke="#1d4ed8" strokeWidth={2} dot={{ fill: '#1d4ed8', r: 5, strokeWidth: 2, stroke: '#fff' }} name="Paciente" connectNulls />
         </LineChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-3 flex-wrap">
-        {[['#ef4444','P3 / P97'],['#f97316','P15 / P85'],['#16a34a','P50 (mediana)'],['#1d4ed8','Paciente']].map(([color, lbl]) => (
+        {[['#ef4444','±3 DP'],['#f97316','±2 DP'],['#16a34a','Mediana'],['#1d4ed8','Paciente']].map(([color, lbl]) => (
           <div key={lbl} className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
             <span className="text-xs text-stone-400">{lbl}</span>
@@ -97,9 +98,9 @@ export default function PacientePage() {
       const ageY = calcIdadeAnos(paciente.data_nascimento, form.data_medicao)
       const nova = await createMedicao({
         paciente_id: id, data_medicao: form.data_medicao, peso_kg: peso, altura_cm: alt,
-        imc_percentil: classifyPercentile(peso/Math.pow(alt/100,2), ageY, WHO_IMC, paciente.sexo).label,
-        peso_percentil: classifyPercentile(peso, ageY, WHO_PESO, paciente.sexo).label,
-        altura_percentil: classifyPercentile(alt, ageY, WHO_ALTURA, paciente.sexo).label,
+        imc_percentil: classifyZScore(peso/Math.pow(alt/100,2), ageY, WHO_IMC, 'imc', paciente.sexo).label,
+        peso_percentil: classifyZScore(peso, ageY, WHO_PESO, 'peso', paciente.sexo).label,
+        altura_percentil: classifyZScore(alt, ageY, WHO_ALTURA, 'altura', paciente.sexo).label,
         observacoes: form.observacoes || undefined,
       })
       setMedicoes(m => [...m, nova].sort((a,b) => a.data_medicao.localeCompare(b.data_medicao)))
@@ -169,8 +170,8 @@ export default function PacientePage() {
               { label: 'Peso', value: `${ultima.peso_kg}`, unit: 'kg', tipo: 'peso' as const, dataset: WHO_PESO, raw: ultima.peso_kg },
               { label: 'Altura', value: `${ultima.altura_cm}`, unit: 'cm', tipo: 'altura' as const, dataset: WHO_ALTURA, raw: ultima.altura_cm },
             ].map(c => {
-              const { zone } = classifyPercentile(c.raw, ageAtLast, c.dataset, paciente.sexo)
-              const status = getNutritionalStatus(zone, c.tipo)
+              const { zone } = classifyZScore(c.raw, ageAtLast, c.dataset, c.tipo, paciente.sexo)
+              const status = getNutritionalStatus(zone, c.tipo, ageAtLast)
               return (
                 <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-3">
                   <p className="text-xs text-stone-400 mb-1">{c.label}</p>
@@ -217,7 +218,7 @@ export default function PacientePage() {
                 <tbody>
                   {[...medicoes].reverse().map((m, i) => {
                     const ageY = calcIdadeAnos(paciente.data_nascimento, m.data_medicao)
-                    const z = classifyPercentile(m.imc, ageY, WHO_IMC, paciente.sexo).zone
+                    const z = classifyZScore(m.imc, ageY, WHO_IMC, 'imc', paciente.sexo).zone
                     return (
                       <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                         <td className="px-4 py-3 text-stone-600">
@@ -227,7 +228,7 @@ export default function PacientePage() {
                         <td className="px-4 py-3 text-right font-medium">{m.peso_kg} kg</td>
                         <td className="px-4 py-3 text-right font-medium">{m.altura_cm} cm</td>
                         <td className="px-4 py-3 text-right font-medium">{m.imc?.toFixed(1)}</td>
-                        <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{getNutritionalStatus(z, 'imc')}</span></td>
+                        <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{getNutritionalStatus(z, 'imc', ageY)}</span></td>
                         <td className="px-2 py-3">
                           {profile?.role === 'admin' && (
                             <button onClick={async () => { if(confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) }}} className="text-stone-300 hover:text-red-400 p-1">✕</button>

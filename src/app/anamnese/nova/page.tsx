@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { createAnamneseTea, getSession, getProfile } from '@/lib/supabase'
-import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries } from '@/lib/who'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries } from '@/lib/who'
 
 const STEPS = ['Paciente', 'Antropometria', 'Alimentação', 'Sono e rotina', 'Conduta']
 
@@ -78,14 +78,14 @@ function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
   const ageY = calcIdadeAnos(dataNasc, dataRef)
   const dataset = tipo === 'imc' ? WHO_IMC : tipo === 'peso' ? WHO_PESO : WHO_ALTURA
   const s = sexo as 'M' | 'F'
-  const { ages, p3, p15, p50, p85, p97 } = getChartSeries(dataset, s, ageY)
+  const { ages, zm3, zm2, z0, zp2, zp3 } = getChartSeries(dataset, s, ageY)
   const curveData = ages.map((age: number, i: number) => ({
-    age: parseFloat(age.toFixed(2)), p3: p3[i], p15: p15[i], p50: p50[i], p85: p85[i], p97: p97[i],
+    age: parseFloat(age.toFixed(2)), zm3: zm3[i], zm2: zm2[i], z0: z0[i], zp2: zp2[i], zp3: zp3[i],
   }))
   const imc = pesoKg / Math.pow(altCm / 100, 2)
   const val = tipo === 'imc' ? imc : tipo === 'peso' ? pesoKg : altCm
   const unit = tipo === 'imc' ? 'kg/m²' : tipo === 'peso' ? 'kg' : 'cm'
-  const { label, zone } = classifyPercentile(val, ageY, dataset, s)
+  const { label, zone } = classifyZScore(val, ageY, dataset, tipo, s)
   const patientPoint = [{ age: parseFloat(ageY.toFixed(2)), val }]
 
   return (
@@ -103,11 +103,11 @@ function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
             tick={{ fontSize: 10 }} />
           <YAxis tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={32} />
           <Tooltip formatter={(v: any) => [`${parseFloat(v).toFixed(1)} ${unit}`]} />
-          <Line data={curveData} dataKey="p97" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="P97" />
-          <Line data={curveData} dataKey="p85" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="P85" />
-          <Line data={curveData} dataKey="p50" stroke="#86efac" strokeWidth={2} dot={false} name="P50" />
-          <Line data={curveData} dataKey="p15" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="P15" />
-          <Line data={curveData} dataKey="p3" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="P3" />
+          <Line data={curveData} dataKey="zp3" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="+3 DP" />
+          <Line data={curveData} dataKey="zp2" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="+2 DP" />
+          <Line data={curveData} dataKey="z0"  stroke="#86efac" strokeWidth={2} dot={false} name="Mediana" />
+          <Line data={curveData} dataKey="zm2" stroke="#fcd34d" strokeWidth={1} strokeDasharray="3 2" dot={false} name="-2 DP" />
+          <Line data={curveData} dataKey="zm3" stroke="#fca5a5" strokeWidth={1} strokeDasharray="4 3" dot={false} name="-3 DP" />
           <Line data={patientPoint} dataKey="val" stroke="#16a34a" strokeWidth={0}
             dot={{ fill: '#16a34a', r: 6, strokeWidth: 2, stroke: '#fff' }} name="Paciente" />
         </LineChart>

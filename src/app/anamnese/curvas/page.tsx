@@ -2,19 +2,21 @@
 import { Suspense, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
-import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyPercentile, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
+import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 
 type ChartTipo = 'imc' | 'peso' | 'altura'
 
 function zoneColor(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return 'text-red-600 bg-red-50 border-red-200'
-  if (zone === 'low' || zone === 'high') return 'text-amber-600 bg-amber-50 border-amber-200'
+  if (zone === 'low' || zone === 'very_high') return 'text-amber-600 bg-amber-50 border-amber-200'
+  if (zone === 'high') return 'text-yellow-600 bg-yellow-50 border-yellow-200'
   return 'text-green-700 bg-green-50 border-green-200'
 }
 
 function zoneIcon(zone: string) {
   if (zone === 'critical_low' || zone === 'critical_high') return '🔴'
-  if (zone === 'low' || zone === 'high') return '🟡'
+  if (zone === 'low' || zone === 'very_high') return '🟠'
+  if (zone === 'high') return '🟡'
   return '🟢'
 }
 
@@ -25,19 +27,24 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
   const ageY = calcIdadeAnos(dataNasc, dataRef)
   const dataset = tipo === 'imc' ? WHO_IMC : tipo === 'peso' ? WHO_PESO : WHO_ALTURA
   const s = sexo as 'M' | 'F'
-  const { ages, p3, p15, p50, p85, p97 } = getChartSeries(dataset, s, ageY)
+  const { ages, zm3, zm2, zm1, z0, zp1, zp2, zp3 } = getChartSeries(dataset, s, ageY)
+
   const curveData = ages.map((age: number, i: number) => ({
-    age: parseFloat(age.toFixed(2)), p3: p3[i], p15: p15[i], p50: p50[i], p85: p85[i], p97: p97[i],
+    age: parseFloat(age.toFixed(2)),
+    zm3: zm3[i], zm2: zm2[i], zm1: zm1[i], z0: z0[i], zp1: zp1[i], zp2: zp2[i], zp3: zp3[i],
   }))
+
   const imc = pesoKg / Math.pow(altCm / 100, 2)
   const val = tipo === 'imc' ? imc : tipo === 'peso' ? pesoKg : altCm
   const unit = tipo === 'imc' ? 'kg/m²' : tipo === 'peso' ? 'kg' : 'cm'
-  const { label, zone } = classifyPercentile(val, ageY, dataset, s)
-  const nutritionalStatus = getNutritionalStatus(zone, tipo)
+
+  const { label, zone } = classifyZScore(val, ageY, dataset, tipo, s)
+  const nutritionalStatus = getNutritionalStatus(zone, tipo, ageY)
   const patientPoint = [{ age: parseFloat(ageY.toFixed(2)), val }]
 
-  const yMin = parseFloat((Math.min(...p3) * 0.94).toFixed(1))
-  const yMax = parseFloat((Math.max(...p97) * 1.04).toFixed(1))
+  const allVals = [...zm3, ...zp3]
+  const yMin = parseFloat((Math.min(...allVals) * 0.94).toFixed(1))
+  const yMax = parseFloat((Math.max(...allVals) * 1.04).toFixed(1))
 
   const idadeStr = ageY < 2
     ? `${Math.round(ageY * 12)} meses`
@@ -95,7 +102,7 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
             <p className="text-xl font-bold mt-0.5">{zoneIcon(zone)} {nutritionalStatus}</p>
           </div>
           <div className="text-right">
-            <p className="text-xs opacity-60">Percentil</p>
+            <p className="text-xs opacity-60">Escore-Z</p>
             <p className="text-sm font-semibold mt-0.5">{label}</p>
           </div>
         </div>
@@ -114,17 +121,25 @@ function Curva({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
             <YAxis domain={[yMin, yMax]} tickFormatter={v => v.toFixed(0)} tick={{ fontSize: 10 }} width={34}
               tickLine={false} axisLine={false} />
             <Tooltip formatter={(v: any) => [`${parseFloat(v).toFixed(1)} ${unit}`]} />
-            <Line data={curveData} dataKey="p97" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P97" />
-            <Line data={curveData} dataKey="p85" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P85" />
-            <Line data={curveData} dataKey="p50" stroke="#16a34a" strokeWidth={2.5} dot={false} name="P50" />
-            <Line data={curveData} dataKey="p15" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="P15" />
-            <Line data={curveData} dataKey="p3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="P3" />
+            <Line data={curveData} dataKey="zm3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="-3 DP" />
+            <Line data={curveData} dataKey="zm2" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="-2 DP" />
+            {tipo === 'imc' && <Line data={curveData} dataKey="zm1" stroke="#eab308" strokeWidth={1} strokeDasharray="2 2" dot={false} name="-1 DP" />}
+            <Line data={curveData} dataKey="z0" stroke="#16a34a" strokeWidth={2.5} dot={false} name="Mediana" />
+            {tipo === 'imc' && <Line data={curveData} dataKey="zp1" stroke="#eab308" strokeWidth={1} strokeDasharray="2 2" dot={false} name="+1 DP" />}
+            <Line data={curveData} dataKey="zp2" stroke="#f97316" strokeWidth={1.5} strokeDasharray="3 2" dot={false} name="+2 DP" />
+            <Line data={curveData} dataKey="zp3" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 3" dot={false} name="+3 DP" />
             <Line data={patientPoint} dataKey="val" stroke="#1d4ed8" strokeWidth={0}
               dot={{ fill: '#1d4ed8', r: 7, strokeWidth: 2.5, stroke: '#fff' }} name="Paciente" />
           </LineChart>
         </ResponsiveContainer>
         <div className="flex items-center gap-4 mt-3 flex-wrap">
-          {[['#ef4444', 'P3 / P97'], ['#f97316', 'P15 / P85'], ['#16a34a', 'P50 (mediana)'], ['#1d4ed8', 'Paciente']].map(([color, lbl]) => (
+          {[
+            ['#ef4444', '±3 DP'],
+            ['#f97316', '±2 DP'],
+            ...(tipo === 'imc' ? [['#eab308', '±1 DP']] : []),
+            ['#16a34a', 'Mediana'],
+            ['#1d4ed8', 'Paciente'],
+          ].map(([color, lbl]) => (
             <div key={lbl} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
               <span className="text-xs text-stone-400">{lbl}</span>
