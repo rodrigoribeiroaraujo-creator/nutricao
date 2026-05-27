@@ -98,8 +98,9 @@ export default function Home() {
           <ul className="space-y-2">
             {filtrados.map(p => (
               <li key={p.id} className="bg-white border border-stone-100 rounded-xl hover:border-green-200 hover:shadow-sm transition">
+                {/* Linha principal: nome + ações */}
                 <div className="flex items-center">
-                  <Link href={`/pacientes/${p.id}`} className="flex-1 flex items-center gap-4 p-4">
+                  <Link href={`/pacientes/${p.id}`} className="flex-1 flex items-center gap-4 px-4 pt-4 pb-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${p.sexo === 'M' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                       {p.nome.charAt(0).toUpperCase()}
                     </div>
@@ -114,6 +115,13 @@ export default function Home() {
                   {isAdmin && (
                     <button onClick={() => handleDelete(p.id, p.nome)} className="p-3 text-stone-300 hover:text-red-400">✕</button>
                   )}
+                </div>
+                {/* Linha secundária: curva de crescimento */}
+                <div className="px-4 pb-3">
+                  <Link href={`/pacientes/${p.id}/curvas`}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-3 py-1 hover:bg-green-100 transition">
+                    📈 Curva de crescimento
+                  </Link>
                 </div>
               </li>
             ))}
