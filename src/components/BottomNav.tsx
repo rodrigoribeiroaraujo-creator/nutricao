@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Users, User, ClipboardList } from 'lucide-react'
+import { Home, Users, User, ClipboardList, TrendingUp } from 'lucide-react'
 import type { Profile } from '@/lib/supabase'
 
 const ROLE_LABEL: Record<Profile['role'], string> = {
@@ -16,6 +16,7 @@ export default function BottomNav({ profile }: { profile: Profile }) {
   const items = [
     { href: '/', icon: Home, label: 'Pacientes' },
     { href: '/anamnese', icon: ClipboardList, label: 'Anamnese' },
+    { href: '/curvas', icon: TrendingUp, label: 'Curvas' },
     ...(profile.role === 'admin' ? [{ href: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
     { href: '/perfil', icon: User, label: 'Perfil' },
   ]
@@ -28,10 +29,12 @@ export default function BottomNav({ profile }: { profile: Profile }) {
         style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
       >
         {items.map(({ href, icon: Icon, label }) => {
-          const active = pathname === href
+          const active = href === '/curvas'
+            ? pathname === '/curvas' || pathname.includes('/curvas')
+            : pathname === href
           return (
             <Link key={href} href={href}
-              className={`flex flex-col items-center gap-0.5 pt-3 pb-1 px-6 text-xs font-medium transition-colors ${active ? 'text-green-600' : 'text-stone-400'}`}>
+              className={`flex flex-col items-center gap-0.5 pt-3 pb-1 px-4 text-xs font-medium transition-colors ${active ? 'text-green-600' : 'text-stone-400'}`}>
               <Icon size={22} strokeWidth={active ? 2.5 : 1.5} />
               {label}
             </Link>
@@ -46,7 +49,9 @@ export default function BottomNav({ profile }: { profile: Profile }) {
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {items.map(({ href, icon: Icon, label }) => {
-            const active = pathname === href
+            const active = href === '/curvas'
+              ? pathname === '/curvas' || pathname.includes('/curvas')
+              : pathname === href
             return (
               <Link key={href} href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-green-50 text-green-700' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'}`}>
