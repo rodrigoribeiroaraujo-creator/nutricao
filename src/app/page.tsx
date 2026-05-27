@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -207,7 +208,7 @@ export default function Home() {
             <Link href="/anamnese"
               className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
               <span className="text-2xl">📋</span>
-              <p className="text-sm font-medium text-stone-700">Anamnese TEA</p>
+              <p className="text-sm font-medium text-stone-700">Anamnese</p>
               <p className="text-xs text-stone-400">Registros e histórico</p>
             </Link>
             {podeAdicionarPaciente && (
