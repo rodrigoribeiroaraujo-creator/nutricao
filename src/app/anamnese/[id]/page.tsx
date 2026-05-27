@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getAnamneseTea, getSession, getProfile, type AnamneseTea, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 
 const NIVEL_LABEL: Record<string, string> = {
   '1': 'Nível 1 — Leve',
@@ -68,7 +69,7 @@ export default function AnamneseDetailPage() {
   const d = anamnese.dados
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -93,7 +94,7 @@ export default function AnamneseDetailPage() {
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-5 pb-10 space-y-4 overflow-y-auto">
+      <main className="flex-1 px-4 py-5 pb-28 md:pb-6 space-y-4 overflow-y-auto">
         <Section title="1. Identificação do paciente">
           <Grid>
             <Row label="Nome" value={anamnese.nome_paciente} />
@@ -158,6 +159,7 @@ export default function AnamneseDetailPage() {
           <Row label="Observações gerais" value={d.obs_gerais} />
         </Section>
       </main>
+      <BottomNav profile={profile!} />
     </div>
   )
 }

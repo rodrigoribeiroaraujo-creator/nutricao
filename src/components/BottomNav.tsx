@@ -46,7 +46,7 @@ export default function BottomNav({ profile }: { profile: Profile }) {
       {/* Desktop: left sidebar */}
       <aside className="hidden md:flex flex-col fixed top-0 left-0 h-full w-56 bg-white border-r border-stone-100 z-50">
         <div className="px-5 py-5 border-b border-stone-100">
-          <span className="font-semibold text-base text-green-700">🌱 NutriCurvas</span>
+          <span className="font-semibold text-base text-green-700">🌱 KR Nutri Pro</span>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {items.map(({ href, icon: Icon, label }) => {

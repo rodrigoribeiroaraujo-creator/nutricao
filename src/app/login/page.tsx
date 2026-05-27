@@ -65,7 +65,7 @@ export default function LoginPage() {
       {/* Topo com branding — só mobile */}
       <div className="flex-1 md:hidden flex flex-col items-center justify-end pb-10 px-4">
         <span className="text-6xl mb-4">🌱</span>
-        <h1 className="text-3xl font-bold text-white">NutriCurvas</h1>
+        <h1 className="text-3xl font-bold text-white">KR Nutri Pro</h1>
         <p className="text-sm text-green-200 mt-1">Avaliação de Crescimento OMS</p>
       </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
         {/* Logo — só desktop */}
         <div className="hidden md:block text-center mb-8">
           <span className="text-5xl">🌱</span>
-          <h1 className="text-2xl font-semibold text-green-700 mt-3">NutriCurvas</h1>
+          <h1 className="text-2xl font-semibold text-green-700 mt-3">KR Nutri Pro</h1>
           <p className="text-sm text-stone-400 mt-1">Avaliação de Crescimento OMS</p>
         </div>
         {/* Tabs */}

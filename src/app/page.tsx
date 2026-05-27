@@ -3,25 +3,26 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPacientes, getAnamnesesTea, getSession, getProfile, type Paciente, type Profile } from '@/lib/supabase'
+import {
+  getPacientes, getAnamnesesTea, getConsultas,
+  getSession, getProfile,
+  type Paciente, type Profile, type Consulta,
+} from '@/lib/supabase'
 import { calcIdadeAnos } from '@/lib/who'
 import BottomNav from '@/components/BottomNav'
 
-const ROLE_LABEL: Record<Profile['role'], string> = {
-  admin: 'Administrador',
-  nutricionista: 'Nutricionista',
-  assistente: 'Assistente',
+function Icon({ n, cls }: { n: string; cls?: string }) {
+  return (
+    <span className={`material-symbols-outlined leading-none select-none ${cls ?? ''}`}>
+      {n}
+    </span>
+  )
 }
 
-function greeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Bom dia'
-  if (h < 18) return 'Boa tarde'
-  return 'Boa noite'
-}
-
-function primeiroNome(email: string) {
-  return email.split('@')[0].split('.')[0]
+function idadeStr(dataNasc: string) {
+  const anos = calcIdadeAnos(dataNasc)
+  if (anos < 2) return `${Math.round(anos * 12)}m`
+  return `${Math.floor(anos)}a`
 }
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [anamnesesCount, setAnamnesesCount] = useState(0)
+  const [consultas, setConsultas] = useState<Consulta[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -38,196 +40,225 @@ export default function Home() {
       if (p.status === 'pending') { router.replace('/pendente'); return }
       if (p.status === 'blocked') { router.replace('/bloqueado'); return }
       setProfile(p)
-      const [pacs, anams] = await Promise.all([getPacientes(), getAnamnesesTea()])
+      const [pacs, anams, cons] = await Promise.all([
+        getPacientes(), getAnamnesesTea(), getConsultas(),
+      ])
       setPacientes(pacs)
       setAnamnesesCount(anams.length)
+      setConsultas(cons)
       setLoading(false)
     })
   }, [router])
 
   if (!profile) {
     return (
-      <div className="min-h-dvh flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center bg-stone-50">
         <p className="text-stone-400 text-sm">Carregando...</p>
       </div>
     )
   }
 
+  const total = pacientes.length
   const masculinos = pacientes.filter(p => p.sexo === 'M').length
   const femininos = pacientes.filter(p => p.sexo === 'F').length
-  const total = pacientes.length
-
-  const bebes = pacientes.filter(p => calcIdadeAnos(p.data_nascimento) < 2).length
-  const criancas = pacientes.filter(p => {
-    const a = calcIdadeAnos(p.data_nascimento)
-    return a >= 2 && a < 6
-  }).length
-  const maiores = pacientes.filter(p => calcIdadeAnos(p.data_nascimento) >= 6).length
-
+  const pendentes = consultas.filter(c => c.status === 'pendente').length
+  const recentes = [...pacientes]
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 5)
+  const mascPct = total > 0 ? Math.round((masculinos / total) * 100) : 0
   const podeAdicionarPaciente = profile.role !== 'assistente'
 
   return (
-    <div className="min-h-dvh flex flex-col md:pl-56">
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="px-4 py-4 flex items-center justify-between">
-          <span className="font-semibold text-base text-green-700">🌱 NutriCurvas</span>
-          {podeAdicionarPaciente && (
-            <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
-              + Novo paciente
-            </Link>
-          )}
+    <div className="min-h-dvh flex flex-col md:pl-56 bg-stone-50">
+
+      {/* ── TopAppBar ── */}
+      <header
+        className="sticky top-0 z-40 bg-stone-50 border-b border-stone-200 flex items-center justify-between px-6 h-16"
+        style={{ paddingTop: 'env(safe-area-inset-top)', fontFamily: 'Manrope, sans-serif' }}
+      >
+        <div className="flex items-center gap-3">
+          <Icon n="clinical_notes" cls="text-orange-700 text-[26px]" />
+          <span className="font-extrabold text-lg text-orange-700 tracking-tight">KR Nutri Pro</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button className="text-stone-400 hover:text-stone-600 transition-colors">
+            <Icon n="search" cls="text-[22px]" />
+          </button>
+          <button className="text-stone-400 hover:text-stone-600 transition-colors">
+            <Icon n="notifications" cls="text-[22px]" />
+          </button>
+          <div className="w-8 h-8 rounded-full bg-orange-100 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
+            {profile.email.charAt(0).toUpperCase()}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 px-4 py-6 pb-28 md:pb-6 overflow-y-auto md:max-w-3xl md:w-full space-y-6">
+      {/* ── Main ── */}
+      <main
+        className="flex-1 px-6 py-6 pb-28 md:pb-10 overflow-y-auto"
+        style={{ fontFamily: 'Manrope, sans-serif' }}
+      >
 
-        {/* Saudação */}
-        <div>
-          <p className="text-stone-400 text-sm">{greeting()},</p>
-          <p className="font-semibold text-stone-800 text-lg capitalize">{primeiroNome(profile.email)}</p>
-          <p className="text-xs text-stone-400">{ROLE_LABEL[profile.role]}</p>
+        {/* Heading */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-stone-900">Clinical Intelligence</h2>
+          <p className="text-stone-500 text-sm mt-1">Métricas em tempo real e visão geral dos pacientes.</p>
         </div>
 
-        {/* Cards de resumo */}
-        {loading ? (
-          <div className="grid grid-cols-2 gap-3">
-            {[0,1,2,3].map(i => (
-              <div key={i} className="bg-stone-100 animate-pulse rounded-2xl h-20" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-white border border-stone-100 rounded-2xl p-4">
-              <p className="text-2xl font-bold text-green-700">{total}</p>
-              <p className="text-xs text-stone-400 mt-0.5">Pacientes cadastrados</p>
-            </div>
-            <div className="bg-white border border-stone-100 rounded-2xl p-4">
-              <p className="text-2xl font-bold text-purple-600">{anamnesesCount}</p>
-              <p className="text-xs text-stone-400 mt-0.5">Anamneses registradas</p>
-            </div>
-            <div className="bg-white border border-stone-100 rounded-2xl p-4">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-500 font-bold text-lg">{masculinos}</span>
-                <span className="text-stone-300 text-sm">/</span>
-                <span className="text-pink-500 font-bold text-lg">{femininos}</span>
-              </div>
-              <p className="text-xs text-stone-400 mt-0.5">Masc. / Fem.</p>
-            </div>
-            <div className="bg-white border border-stone-100 rounded-2xl p-4">
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-stone-600 text-sm font-semibold">{bebes}</span>
-                <span className="text-stone-300 text-xs">·</span>
-                <span className="text-stone-600 text-sm font-semibold">{criancas}</span>
-                <span className="text-stone-300 text-xs">·</span>
-                <span className="text-stone-600 text-sm font-semibold">{maiores}</span>
-              </div>
-              <p className="text-xs text-stone-400 mt-0.5">&lt;2a · 2–5a · ≥6a</p>
-            </div>
-          </div>
-        )}
+        {/* ── Metric Cards ── */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
 
-        {/* Distribuição por sexo — barra visual */}
-        {!loading && total > 0 && (
-          <div className="bg-white border border-stone-100 rounded-2xl p-4">
-            <p className="text-xs font-medium text-stone-500 mb-3">Distribuição por sexo</p>
-            <div className="flex rounded-full overflow-hidden h-4 gap-0.5">
-              {masculinos > 0 && (
-                <div
-                  className="bg-blue-400 transition-all"
-                  style={{ width: `${(masculinos / total) * 100}%` }}
-                />
-              )}
-              {femininos > 0 && (
-                <div
-                  className="bg-pink-400 transition-all"
-                  style={{ width: `${(femininos / total) * 100}%` }}
-                />
-              )}
+          {/* Card 1 – Pacientes */}
+          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300">
+            <div className="flex justify-between items-start mb-3">
+              <span className="p-2 bg-orange-100 rounded-lg">
+                <Icon n="groups" cls="text-orange-700 text-[24px]" />
+              </span>
+              <span className="text-orange-700 font-bold text-xs">{masculinos}M / {femininos}F</span>
             </div>
-            <div className="flex gap-4 mt-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 flex-shrink-0" />
-                <span className="text-xs text-stone-500">Masculino ({masculinos})</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-pink-400 flex-shrink-0" />
-                <span className="text-xs text-stone-500">Feminino ({femininos})</span>
-              </div>
+            <p className="text-sm font-semibold text-stone-500">Pacientes Ativos</p>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-4xl font-extrabold text-stone-900">
+                {loading ? '—' : total}
+              </span>
+              <span className="text-xs font-bold text-stone-400">pacientes</span>
+            </div>
+            <div className="mt-4 w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+              <div
+                className="bg-orange-400 h-full rounded-full transition-all duration-700"
+                style={{ width: `${mascPct}%` }}
+              />
             </div>
           </div>
-        )}
 
-        {/* Distribuição por faixa etária — barra visual */}
-        {!loading && total > 0 && (
-          <div className="bg-white border border-stone-100 rounded-2xl p-4">
-            <p className="text-xs font-medium text-stone-500 mb-3">Distribuição por faixa etária</p>
-            <div className="flex rounded-full overflow-hidden h-4 gap-0.5">
-              {bebes > 0 && (
-                <div className="bg-yellow-400" style={{ width: `${(bebes / total) * 100}%` }} />
-              )}
-              {criancas > 0 && (
-                <div className="bg-green-400" style={{ width: `${(criancas / total) * 100}%` }} />
-              )}
-              {maiores > 0 && (
-                <div className="bg-violet-400" style={{ width: `${(maiores / total) * 100}%` }} />
-              )}
+          {/* Card 2 – Anamneses */}
+          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300">
+            <div className="flex justify-between items-start mb-3">
+              <span className="p-2 bg-violet-100 rounded-lg">
+                <Icon n="pending_actions" cls="text-violet-700 text-[24px]" />
+              </span>
+              <span className="text-violet-700 font-bold text-xs">Clínicas</span>
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 flex-shrink-0" />
-                <span className="text-xs text-stone-500">&lt; 2 anos ({bebes})</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0" />
-                <span className="text-xs text-stone-500">2–5 anos ({criancas})</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-violet-400 flex-shrink-0" />
-                <span className="text-xs text-stone-500">≥ 6 anos ({maiores})</span>
-              </div>
+            <p className="text-sm font-semibold text-stone-500">Anamneses</p>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-4xl font-extrabold text-stone-900">
+                {loading ? '—' : anamnesesCount}
+              </span>
+              <span className="text-xs font-bold text-stone-400">registradas</span>
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <Icon n="clinical_notes" cls="text-violet-300 text-base" />
+              <span className="text-xs text-stone-400">Histórico de anamneses</span>
             </div>
           </div>
-        )}
 
-        {/* Atalhos rápidos */}
-        <div>
-          <p className="text-xs font-medium text-stone-500 mb-3">Acesso rápido</p>
-          <div className="grid grid-cols-2 gap-3">
-            <Link href="/pacientes"
-              className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
-              <span className="text-2xl">👤</span>
-              <p className="text-sm font-medium text-stone-700">Ver pacientes</p>
-              <p className="text-xs text-stone-400">Lista completa</p>
-            </Link>
-            <Link href="/curvas"
-              className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
-              <span className="text-2xl">📈</span>
-              <p className="text-sm font-medium text-stone-700">Curvas de crescimento</p>
-              <p className="text-xs text-stone-400">Z-score WHO</p>
-            </Link>
-            <Link href="/anamnese"
-              className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
-              <span className="text-2xl">📋</span>
-              <p className="text-sm font-medium text-stone-700">Anamnese</p>
-              <p className="text-xs text-stone-400">Registros e histórico</p>
-            </Link>
-            <Link href="/financeiro"
-              className="bg-white border border-stone-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-200 hover:shadow-sm transition">
-              <span className="text-2xl">💰</span>
-              <p className="text-sm font-medium text-stone-700">Financeiro</p>
-              <p className="text-xs text-stone-400">Consultas e pagamentos</p>
-            </Link>
-            {podeAdicionarPaciente && (
-              <Link href="/pacientes/novo"
-                className="bg-green-50 border border-green-100 rounded-2xl p-4 flex flex-col gap-2 hover:border-green-300 hover:shadow-sm transition">
-                <span className="text-2xl">➕</span>
-                <p className="text-sm font-medium text-green-700">Novo paciente</p>
-                <p className="text-xs text-green-500">Cadastrar</p>
-              </Link>
-            )}
+          {/* Card 3 – Consultas pendentes */}
+          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300 relative overflow-hidden">
+            <div className="flex justify-between items-start mb-3">
+              <span className="p-2 bg-sky-100 rounded-lg">
+                <Icon n="show_chart" cls="text-sky-700 text-[24px]" />
+              </span>
+              <span className="text-stone-500 font-bold text-xs">Financeiro</span>
+            </div>
+            <p className="text-sm font-semibold text-stone-500">Consultas Pendentes</p>
+            <div className="flex items-baseline gap-1.5 mt-1">
+              <span className="text-4xl font-extrabold text-stone-900">
+                {loading ? '—' : pendentes}
+              </span>
+              <span className="text-xs font-bold text-stone-400">aguardando</span>
+            </div>
+            {/* Sparkline */}
+            <div className="absolute bottom-0 right-0 left-0 h-16 opacity-10 pointer-events-none">
+              <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+                <path d="M0 80 Q 25 20, 50 60 T 100 30 L 100 100 L 0 100 Z" fill="#0ea5e9" />
+              </svg>
+            </div>
           </div>
         </div>
 
+        {/* ── Recent Patients ── */}
+        <div className="mb-10">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-stone-900">Pacientes Recentes</h3>
+            <Link
+              href="/pacientes"
+              className="text-orange-700 font-bold text-sm flex items-center gap-1 hover:opacity-70 transition-opacity"
+            >
+              Ver todos <Icon n="arrow_forward" cls="text-[18px]" />
+            </Link>
+          </div>
+
+          <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              {loading ? (
+                <p className="p-10 text-center text-stone-400 text-sm">Carregando...</p>
+              ) : recentes.length === 0 ? (
+                <p className="p-10 text-center text-stone-400 text-sm">Nenhum paciente cadastrado ainda.</p>
+              ) : (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-stone-50 border-b border-stone-200">
+                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Paciente</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Idade</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Sexo</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Cadastro</th>
+                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {recentes.map(p => (
+                      <tr key={p.id} className="hover:bg-stone-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-orange-50 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
+                              {p.nome.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-stone-900 text-sm">{p.nome}</p>
+                              <p className="text-xs text-stone-400">#{p.id.slice(0, 8).toUpperCase()}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-stone-500">{idadeStr(p.data_nascimento)}</td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            p.sexo === 'M'
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'bg-pink-50 text-pink-700'
+                          }`}>
+                            {p.sexo === 'M' ? 'Masculino' : 'Feminino'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-stone-500">
+                          {new Date(p.created_at).toLocaleDateString('pt-BR')}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Link
+                            href={`/pacientes/${p.id}`}
+                            className="text-stone-400 hover:text-orange-700 transition-colors inline-flex"
+                          >
+                            <Icon n="open_in_new" cls="text-lg" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Quick action ── */}
+        {podeAdicionarPaciente && (
+          <Link
+            href="/pacientes/novo"
+            className="inline-flex items-center gap-2 bg-orange-700 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-orange-800 active:scale-95 transition-all"
+          >
+            <Icon n="person_add" cls="text-base" />
+            Novo Paciente
+          </Link>
+        )}
       </main>
 
       <BottomNav profile={profile} />

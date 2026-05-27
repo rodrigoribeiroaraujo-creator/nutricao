@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
-import { getAnamneseTea, updateAnamneseTea, getSession, getProfile } from '@/lib/supabase'
+import { getAnamneseTea, updateAnamneseTea, getSession, getProfile, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries } from '@/lib/who'
 
 const STEPS = ['Paciente', 'Antropometria', 'Alimentação', 'Sono e rotina', 'Conduta']
@@ -119,6 +120,7 @@ function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
 export default function EditarAnamnesePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<FormData>(EMPTY)
   const [chartTipo, setChartTipo] = useState<ChartTipo>('imc')
@@ -130,6 +132,7 @@ export default function EditarAnamnesePage() {
     getSession().then(async session => {
       if (!session) { router.replace('/login'); return }
       const prof = await getProfile(session.user.id)
+      setProfile(prof)
       if (prof.role !== 'admin') { router.replace(`/anamnese/${id}`); return }
       const a = await getAnamneseTea(id)
       const dados = a.dados as Record<string, string>
@@ -413,7 +416,7 @@ export default function EditarAnamnesePage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56 pb-28 md:pb-0">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-3 flex items-center gap-3">
           <Link href={`/anamnese/${id}`} className="text-stone-400 hover:text-stone-700">←</Link>
@@ -456,6 +459,7 @@ export default function EditarAnamnesePage() {
           </button>
         )}
       </div>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }

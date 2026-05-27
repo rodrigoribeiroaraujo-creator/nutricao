@@ -3,11 +3,13 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getPaciente, updatePaciente, getSession, getProfile } from '@/lib/supabase'
+import { getPaciente, updatePaciente, getSession, getProfile, type Profile } from '@/lib/supabase'
+import BottomNav from '@/components/BottomNav'
 
 export default function EditarPaciente() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
@@ -19,6 +21,7 @@ export default function EditarPaciente() {
     getSession().then(async session => {
       if (!session) { router.replace('/login'); return }
       const prof = await getProfile(session.user.id)
+      setProfile(prof)
       if (prof.role === 'assistente') { router.replace(`/pacientes/${id}`); return }
       const p = await getPaciente(id)
       setForm({ nome: p.nome, data_nascimento: p.data_nascimento, sexo: p.sexo, observacoes: p.observacoes ?? '' })
@@ -46,14 +49,14 @@ export default function EditarPaciente() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center gap-3">
           <Link href={`/pacientes/${id}`} className="text-stone-400 hover:text-stone-700">←</Link>
           <h1 className="font-semibold text-base text-stone-800">Editar paciente</h1>
         </div>
       </header>
-      <main className="flex-1 px-4 py-6">
+      <main className="flex-1 px-4 py-6 pb-28 md:pb-6">
         <form onSubmit={handleSubmit} className="bg-white border border-stone-100 rounded-2xl p-6 space-y-5">
           <div>
             <label className="block text-sm font-medium text-stone-600 mb-1.5">Nome completo</label>
@@ -85,6 +88,7 @@ export default function EditarPaciente() {
           </button>
         </form>
       </main>
+      {profile && <BottomNav profile={profile} />}
     </div>
   )
 }
