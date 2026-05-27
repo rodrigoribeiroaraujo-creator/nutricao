@@ -14,9 +14,10 @@ export default function BottomNav({ profile }: { profile: Profile }) {
   const pathname = usePathname()
 
   const items = [
-    { href: '/', icon: Home, label: 'Pacientes' },
-    { href: '/anamnese', icon: ClipboardList, label: 'Anamnese' },
+    { href: '/', icon: Home, label: 'Início' },
+    { href: '/pacientes', icon: Users, label: 'Pacientes' },
     { href: '/curvas', icon: TrendingUp, label: 'Curvas' },
+    { href: '/anamnese', icon: ClipboardList, label: 'Anamnese' },
     ...(profile.role === 'admin' ? [{ href: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
     { href: '/perfil', icon: User, label: 'Perfil' },
   ]
@@ -29,9 +30,9 @@ export default function BottomNav({ profile }: { profile: Profile }) {
         style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
       >
         {items.map(({ href, icon: Icon, label }) => {
-          const active = href === '/curvas'
-            ? pathname === '/curvas' || pathname.includes('/curvas')
-            : pathname === href
+          const active = href === '/'
+            ? pathname === '/'
+            : pathname === href || pathname.startsWith(href + '/')
           return (
             <Link key={href} href={href}
               className={`flex flex-col items-center gap-0.5 pt-3 pb-1 px-4 text-xs font-medium transition-colors ${active ? 'text-green-600' : 'text-stone-400'}`}>
@@ -49,9 +50,9 @@ export default function BottomNav({ profile }: { profile: Profile }) {
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {items.map(({ href, icon: Icon, label }) => {
-            const active = href === '/curvas'
-              ? pathname === '/curvas' || pathname.includes('/curvas')
-              : pathname === href
+            const active = href === '/'
+              ? pathname === '/'
+              : pathname === href || pathname.startsWith(href + '/')
             return (
               <Link key={href} href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${active ? 'bg-green-50 text-green-700' : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'}`}>
