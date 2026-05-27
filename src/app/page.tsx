@@ -101,7 +101,7 @@ export default function Home() {
 
         {/* Heading */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-stone-900">Clinical Intelligence</h2>
+          <h2 className="text-2xl font-bold text-stone-900">Painel Clínico</h2>
           <p className="text-stone-500 text-sm mt-1">Métricas em tempo real e visão geral dos pacientes.</p>
         </div>
 
