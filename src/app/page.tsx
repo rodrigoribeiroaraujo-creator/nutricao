@@ -70,7 +70,7 @@ export default function Home() {
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="px-4 py-4 flex items-center justify-between">
-          <span className="font-semibold text-base text-green-700">🌱 NutriCurvas</span>
+          <span className="font-semibold text-base text-green-700">🌱 KR Nutri Pro</span>
           {podeAdicionarPaciente && (
             <Link href="/pacientes/novo" className="bg-green-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-green-700">
               + Novo paciente
