@@ -25,7 +25,7 @@ export default function NovoPaciente() {
 
   return (
     <div className="min-h-screen">
-      <header className="bg-white border-b border-stone-100 sticky top-0 z-10">
+      <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link href="/" className="text-stone-400 hover:text-stone-700">←</Link>
           <h1 className="font-semibold text-lg">Novo paciente</h1>
