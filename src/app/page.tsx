@@ -106,69 +106,86 @@ export default function Home() {
         </div>
 
         {/* ── Metric Cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
 
-          {/* Card 1 – Pacientes */}
-          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300">
+          {/* Card 1 – Pacientes (full width on mobile) */}
+          <div className="col-span-2 md:col-span-1 bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-orange-100 rounded-lg">
-                <Icon n="groups" cls="text-orange-700 text-[24px]" />
+                <Icon n="groups" cls="text-orange-700 text-[22px]" />
               </span>
-              <span className="text-orange-700 font-bold text-xs">{masculinos}M / {femininos}F</span>
+              <span className="text-xs font-semibold text-stone-400 mt-1">Total</span>
             </div>
-            <p className="text-sm font-semibold text-stone-500">Pacientes Ativos</p>
-            <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-4xl font-extrabold text-stone-900">
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Pacientes Ativos</p>
+            <div className="flex items-baseline gap-1.5 mt-1 mb-3">
+              <span className="text-3xl font-extrabold text-stone-900">
                 {loading ? '—' : total}
               </span>
               <span className="text-xs font-bold text-stone-400">pacientes</span>
             </div>
-            <div className="mt-4 w-full bg-stone-100 rounded-full h-1.5 overflow-hidden">
+            {/* Barra M/F */}
+            <div className="w-full bg-pink-100 rounded-full h-2 overflow-hidden mb-2">
               <div
-                className="bg-orange-400 h-full rounded-full transition-all duration-700"
+                className="bg-blue-400 h-full rounded-full transition-all duration-700"
                 style={{ width: `${mascPct}%` }}
               />
+            </div>
+            {/* Legenda M/F */}
+            <div className="flex justify-between text-xs mt-1">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-blue-400" />
+                <span className="text-stone-500">Masc.</span>
+                <span className="font-bold text-stone-700">{loading ? '—' : masculinos}</span>
+                <span className="text-stone-400">({mascPct}%)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-pink-400" />
+                <span className="text-stone-500">Fem.</span>
+                <span className="font-bold text-stone-700">{loading ? '—' : femininos}</span>
+                <span className="text-stone-400">({total > 0 ? 100 - mascPct : 0}%)</span>
+              </div>
             </div>
           </div>
 
           {/* Card 2 – Anamneses */}
-          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300">
+          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-violet-100 rounded-lg">
-                <Icon n="pending_actions" cls="text-violet-700 text-[24px]" />
+                <Icon n="pending_actions" cls="text-violet-700 text-[22px]" />
               </span>
-              <span className="text-violet-700 font-bold text-xs">Clínicas</span>
             </div>
-            <p className="text-sm font-semibold text-stone-500">Anamneses</p>
-            <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-4xl font-extrabold text-stone-900">
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Anamneses</p>
+            <div className="flex items-baseline gap-1 mt-1 mb-3">
+              <span className="text-3xl font-extrabold text-stone-900">
                 {loading ? '—' : anamnesesCount}
               </span>
-              <span className="text-xs font-bold text-stone-400">registradas</span>
+              <span className="text-xs font-bold text-stone-400">reg.</span>
             </div>
-            <div className="mt-4 flex items-center gap-2">
-              <Icon n="clinical_notes" cls="text-violet-300 text-base" />
-              <span className="text-xs text-stone-400">Histórico de anamneses</span>
+            <div className="flex items-center gap-1.5 mt-auto">
+              <Icon n="clinical_notes" cls="text-violet-300 text-sm" />
+              <span className="text-xs text-stone-400">Histórico</span>
             </div>
           </div>
 
           {/* Card 3 – Consultas pendentes */}
-          <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm hover:scale-[1.01] transition-transform duration-300 relative overflow-hidden">
+          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm relative overflow-hidden">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-sky-100 rounded-lg">
-                <Icon n="show_chart" cls="text-sky-700 text-[24px]" />
+                <Icon n="show_chart" cls="text-sky-700 text-[22px]" />
               </span>
-              <span className="text-stone-500 font-bold text-xs">Financeiro</span>
             </div>
-            <p className="text-sm font-semibold text-stone-500">Consultas Pendentes</p>
-            <div className="flex items-baseline gap-1.5 mt-1">
-              <span className="text-4xl font-extrabold text-stone-900">
+            <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Pendentes</p>
+            <div className="flex items-baseline gap-1 mt-1 mb-3">
+              <span className="text-3xl font-extrabold text-stone-900">
                 {loading ? '—' : pendentes}
               </span>
-              <span className="text-xs font-bold text-stone-400">aguardando</span>
+              <span className="text-xs font-bold text-stone-400">consul.</span>
             </div>
-            {/* Sparkline */}
-            <div className="absolute bottom-0 right-0 left-0 h-16 opacity-10 pointer-events-none">
+            <div className="flex items-center gap-1.5">
+              <Icon n="payments" cls="text-sky-300 text-sm" />
+              <span className="text-xs text-stone-400">Financeiro</span>
+            </div>
+            <div className="absolute bottom-0 right-0 left-0 h-14 opacity-10 pointer-events-none">
               <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
                 <path d="M0 80 Q 25 20, 50 60 T 100 30 L 100 100 L 0 100 Z" fill="#0ea5e9" />
               </svg>
