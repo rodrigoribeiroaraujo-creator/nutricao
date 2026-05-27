@@ -18,7 +18,6 @@ export default function BottomNav({ profile }: { profile: Profile }) {
     { href: '/pacientes', icon: Users, label: 'Pacientes' },
     { href: '/curvas', icon: TrendingUp, label: 'Curvas' },
     { href: '/anamnese', icon: ClipboardList, label: 'Anamnese' },
-    ...(profile.role === 'admin' ? [{ href: '/admin/usuarios', icon: Users, label: 'Usuários' }] : []),
     { href: '/perfil', icon: User, label: 'Perfil' },
   ]
 
