@@ -56,9 +56,15 @@ export default function PacientesPage() {
             <span className="font-semibold text-base text-stone-800">Pacientes</span>
           </div>
           {podeAdicionarPaciente && (
-            <Link href="/pacientes/novo" className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
-              + Novo
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/importar" className="flex items-center gap-1.5 border border-orange-700 text-orange-700 text-sm font-medium px-3 py-2 rounded-lg hover:bg-orange-50">
+                <span className="material-symbols-outlined leading-none" style={{fontSize:'16px'}}>upload_file</span>
+                PDF
+              </Link>
+              <Link href="/pacientes/novo" className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
+                + Novo
+              </Link>
+            </div>
           )}
         </div>
       </header>
