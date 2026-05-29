@@ -259,7 +259,7 @@ export default function PacientePage() {
                 <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-3 flex flex-col">
                   <p className="text-[10px] text-stone-400 mb-1 uppercase tracking-wide">{c.label}</p>
                   <p className="font-semibold text-stone-800 text-sm leading-tight">{c.value} <span className="text-[10px] font-normal text-stone-400">{c.unit}</span></p>
-                  <span className={`text-[10px] mt-2 inline-block px-1.5 py-0.5 rounded-full font-medium leading-tight w-fit ${zoneColor(zone)}`}>{status}</span>
+                  <p className={`text-[10px] mt-1.5 font-semibold leading-tight truncate ${zoneColor(zone).split(' ')[0]}`}>{status}</p>
                 </div>
               )
             })}
@@ -291,15 +291,13 @@ export default function PacientePage() {
             </div>
           ) : (
             <div className="bg-white border border-stone-100 rounded-xl overflow-hidden">
-              <div className="overflow-x-auto">
-              <table className="w-full text-sm min-w-[400px]">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-stone-100 text-xs text-stone-400 uppercase tracking-wider">
-                    <th className="px-4 py-3 text-left">Data</th>
-                    <th className="px-4 py-3 text-right">Peso</th>
-                    <th className="px-4 py-3 text-right">Altura</th>
-                    <th className="px-4 py-3 text-right">IMC</th>
-                    <th className="px-4 py-3 text-left">Percentil</th>
+                    <th className="px-3 py-3 text-left">Data</th>
+                    <th className="px-3 py-3 text-right">Peso</th>
+                    <th className="px-3 py-3 text-right">Altura</th>
+                    <th className="px-3 py-3 text-right">IMC</th>
                     <th className="px-2 py-3" />
                   </tr>
                 </thead>
@@ -309,14 +307,13 @@ export default function PacientePage() {
                     const z = classifyZScore(m.imc, ageY, WHO_IMC, 'imc', paciente.sexo).zone
                     return (
                       <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
-                        <td className="px-4 py-3 text-stone-600">
+                        <td className="px-3 py-3 text-stone-600 text-xs">
                           {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          {i === 0 && <span className="ml-2 text-xs text-orange-600 font-medium">recente</span>}
+                          {i === 0 && <span className="ml-1 text-orange-600 font-medium">recente</span>}
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">{m.peso_kg} kg</td>
-                        <td className="px-4 py-3 text-right font-medium">{m.altura_cm} cm</td>
-                        <td className="px-4 py-3 text-right font-medium">{m.imc?.toFixed(1)}</td>
-                        <td className="px-4 py-3"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${zoneColor(z)}`}>{getNutritionalStatus(z, 'imc', ageY)}</span></td>
+                        <td className="px-3 py-3 text-right font-medium text-sm">{m.peso_kg} kg</td>
+                        <td className="px-3 py-3 text-right font-medium text-sm">{m.altura_cm} cm</td>
+                        <td className="px-3 py-3 text-right font-medium text-sm">{m.imc?.toFixed(1)}</td>
                         <td className="px-2 py-3">
                           {profile?.role === 'admin' && (
                             <button onClick={async () => { if(confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) }}} className="text-stone-300 hover:text-red-400 p-1">✕</button>
@@ -327,7 +324,6 @@ export default function PacientePage() {
                   })}
                 </tbody>
               </table>
-              </div>
             </div>
           )}
         </div>
