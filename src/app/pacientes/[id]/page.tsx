@@ -247,7 +247,7 @@ export default function PacientePage() {
 
         {/* Cards resumo nutricional */}
         {ultima && ageAtLast !== null && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { label: 'IMC', value: `${ultima.imc?.toFixed(1)}`, unit: 'kg/m²', tipo: 'imc' as const, dataset: WHO_IMC, raw: ultima.imc },
               { label: 'Peso', value: `${ultima.peso_kg}`, unit: 'kg', tipo: 'peso' as const, dataset: WHO_PESO, raw: ultima.peso_kg },
@@ -256,10 +256,10 @@ export default function PacientePage() {
               const { zone } = classifyZScore(c.raw, ageAtLast, c.dataset, c.tipo, paciente.sexo)
               const status = getNutritionalStatus(zone, c.tipo, ageAtLast)
               return (
-                <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-3">
-                  <p className="text-xs text-stone-400 mb-1">{c.label}</p>
-                  <p className="font-semibold text-stone-800 text-sm">{c.value} <span className="text-xs font-normal text-stone-400">{c.unit}</span></p>
-                  <span className={`text-xs mt-1.5 inline-block px-2 py-0.5 rounded-full font-medium ${zoneColor(zone)}`}>{status}</span>
+                <div key={c.label} className="bg-white border border-stone-100 rounded-xl p-3 flex flex-col">
+                  <p className="text-[10px] text-stone-400 mb-1 uppercase tracking-wide">{c.label}</p>
+                  <p className="font-semibold text-stone-800 text-sm leading-tight">{c.value} <span className="text-[10px] font-normal text-stone-400">{c.unit}</span></p>
+                  <span className={`text-[10px] mt-2 inline-block px-1.5 py-0.5 rounded-full font-medium leading-tight w-fit ${zoneColor(zone)}`}>{status}</span>
                 </div>
               )
             })}
@@ -291,7 +291,8 @@ export default function PacientePage() {
             </div>
           ) : (
             <div className="bg-white border border-stone-100 rounded-xl overflow-hidden">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[400px]">
                 <thead>
                   <tr className="border-b border-stone-100 text-xs text-stone-400 uppercase tracking-wider">
                     <th className="px-4 py-3 text-left">Data</th>
@@ -326,6 +327,7 @@ export default function PacientePage() {
                   })}
                 </tbody>
               </table>
+              </div>
             </div>
           )}
         </div>
