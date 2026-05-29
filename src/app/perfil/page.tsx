@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getSession, getProfile, getProfiles, updateProfile, signOut, type Profile } from '@/lib/supabase'
 import BottomNav from '@/components/BottomNav'
 
