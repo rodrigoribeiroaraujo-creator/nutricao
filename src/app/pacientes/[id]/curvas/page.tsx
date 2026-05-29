@@ -29,6 +29,8 @@ function CurvaView({ paciente, medicao, tipo }: { paciente: Paciente; medicao: M
   const s = paciente.sexo
 
   const { ages, zm3, zm2, zm1, z0, zp1, zp2, zp3 } = getChartSeries(dataset, s, ageY)
+  const maxDataAge = Math.max(...ages)
+  const outOfRange = ageY > maxDataAge
   const curveData = ages.map((age: number, i: number) => ({
     age: parseFloat(age.toFixed(2)),
     zm3: zm3[i], zm2: zm2[i], zm1: zm1[i], z0: z0[i], zp1: zp1[i], zp2: zp2[i], zp3: zp3[i],
@@ -88,6 +90,12 @@ function CurvaView({ paciente, medicao, tipo }: { paciente: Paciente; medicao: M
       </div>
 
       {/* Gráfico */}
+      {outOfRange ? (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+          <p className="text-sm text-amber-700 font-medium">Curvas OMS não disponíveis para esta faixa etária.</p>
+          <p className="text-xs text-amber-500 mt-1">Referência disponível até {Math.floor(maxDataAge)} anos.</p>
+        </div>
+      ) : (
       <div className="bg-white border border-stone-100 rounded-xl p-4">
         <p className="text-xs text-stone-400 font-medium uppercase tracking-wider mb-3">
           {tipo === 'imc' ? 'IMC' : tipo === 'peso' ? 'Peso' : 'Altura'} × Idade — OMS ({s === 'M' ? 'Masculino' : 'Feminino'})
@@ -127,6 +135,7 @@ function CurvaView({ paciente, medicao, tipo }: { paciente: Paciente; medicao: M
           ))}
         </div>
       </div>
+      )}
     </div>
   )
 }

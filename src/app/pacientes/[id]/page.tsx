@@ -47,6 +47,15 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
   const ageMax = calcIdadeAnos(paciente.data_nascimento)
   const dataset = tipo === 'imc' ? WHO_IMC : tipo === 'peso' ? WHO_PESO : WHO_ALTURA
   const { ages, zm3, zm2, z0, zp2, zp3 } = getChartSeries(dataset, paciente.sexo, ageMax)
+  const maxDataAge = Math.max(...ages)
+  if (ageMax > maxDataAge) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
+        <p className="text-sm text-amber-700 font-medium">Curvas OMS não disponíveis para esta faixa etária.</p>
+        <p className="text-xs text-amber-500 mt-1">Referência disponível até {Math.floor(maxDataAge)} anos.</p>
+      </div>
+    )
+  }
   const curveData = ages.map((age: number, i: number) => ({ age: parseFloat(age.toFixed(2)), zm3: zm3[i], zm2: zm2[i], z0: z0[i], zp2: zp2[i], zp3: zp3[i] }))
   const patientPoints = medicoes.map(m => {
     const ageY = calcIdadeAnos(paciente.data_nascimento, m.data_medicao)
