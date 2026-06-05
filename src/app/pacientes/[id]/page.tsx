@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  getPaciente, getMedicoes, createMedicao, deleteMedicao,
+  getPaciente, getMedicoes, createMedicao, deleteMedicao, deletePaciente,
   getConsultasByPaciente, createConsulta, updateConsultaStatus, deleteConsulta,
   getSession, getProfile,
   type Paciente, type Medicao, type Profile, type Consulta,
@@ -191,6 +191,12 @@ export default function PacientePage() {
     setConsultas(cs => cs.filter(c => c.id !== consultaId))
   }
 
+  async function handleDeletePaciente() {
+    if (!confirm(`Excluir o paciente "${paciente?.nome}" permanentemente? Todas as medições e consultas também serão removidas.`)) return
+    await deletePaciente(id)
+    router.replace('/pacientes')
+  }
+
   if (loading) return <div className="flex items-center justify-center min-h-screen"><p className="text-stone-400">Carregando...</p></div>
   if (!paciente) return null
 
@@ -216,9 +222,18 @@ export default function PacientePage() {
           </div>
           <div className="flex items-center gap-2">
             {podeEditar && (
-              <Link href={`/pacientes/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
-                Editar
-              </Link>
+              <>
+                <Link href={`/pacientes/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
+                  Editar
+                </Link>
+                <button
+                  onClick={handleDeletePaciente}
+                  className="border border-red-200 text-red-400 p-2 rounded-lg hover:bg-red-50"
+                  title="Excluir paciente"
+                >
+                  <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>delete</span>
+                </button>
+              </>
             )}
             <button onClick={() => setShowForm(s => !s)} className="bg-orange-700 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-800">
               + Medição
