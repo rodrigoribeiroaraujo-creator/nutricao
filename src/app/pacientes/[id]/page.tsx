@@ -326,14 +326,14 @@ export default function PacientePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[...medicoes].reverse().map((m, i) => {
+                  {medicoes.map((m, i) => {
                     const ageY = calcIdadeAnos(paciente.data_nascimento, m.data_medicao)
                     const z = classifyZScore(m.imc, ageY, WHO_IMC, 'imc', paciente.sexo).zone
                     return (
                       <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                         <td className="px-3 py-3 text-stone-600 text-xs">
                           {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
-                          {i === 0 && <span className="ml-1 text-orange-600 font-medium">recente</span>}
+                          {i === medicoes.length - 1 && <span className="ml-1 text-orange-600 font-medium">recente</span>}
                         </td>
                         <td className="px-3 py-3 text-right font-medium text-sm">{m.peso_kg} kg</td>
                         <td className="px-3 py-3 text-right font-medium text-sm">{m.altura_cm} cm</td>
