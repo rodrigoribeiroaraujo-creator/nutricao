@@ -56,7 +56,7 @@ export default function Home() {
       setAnamnesesCount(anams.length)
       setConsultas(cons)
       setLoading(false)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   if (!profile) {

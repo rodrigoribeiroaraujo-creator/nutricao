@@ -32,7 +32,7 @@ export default function ImportarPage() {
       if (p.status === 'pending') { router.replace('/pendente'); return }
       if (p.status === 'blocked') { router.replace('/bloqueado'); return }
       setProfile(p)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   async function processFile(file: File) {

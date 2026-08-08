@@ -46,7 +46,7 @@ export default function PerfilPage() {
       if (p.role === 'admin') {
         getProfiles().then(setProfiles)
       }
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   async function handleSignOut() {

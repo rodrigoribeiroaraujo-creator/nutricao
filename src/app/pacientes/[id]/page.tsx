@@ -223,6 +223,9 @@ export default function PacientePage() {
           <div className="flex items-center gap-2">
             {podeEditar && (
               <>
+                <Link href={`/pacientes/${id}/suplementacao`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50" title="Suplementação">
+                  <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>medication</span>
+                </Link>
                 <Link href={`/pacientes/${id}/editar`} className="border border-stone-200 text-stone-500 text-sm font-medium px-3 py-2 rounded-lg hover:bg-stone-50">
                   Editar
                 </Link>
@@ -350,6 +353,19 @@ export default function PacientePage() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* ── Suplementação ── */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-stone-700">💊 Suplementação</h2>
+            <Link href={`/pacientes/${id}/suplementacao`} className="text-sm text-orange-700 font-medium hover:underline">
+              Ver / editar →
+            </Link>
+          </div>
+          <div className="bg-white border border-stone-100 rounded-xl p-4 text-center text-stone-400">
+            <p className="text-sm">Acesse a tela de suplementação para prescrever e acompanhar suplementos com base nas DRIs.</p>
+          </div>
         </div>
 
         {/* ── Seção financeira ── */}
