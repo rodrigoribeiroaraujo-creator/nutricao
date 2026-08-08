@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Users, User, ClipboardList, TrendingUp, DollarSign } from 'lucide-react'
+import { Home, Users, User, ClipboardList, DollarSign } from 'lucide-react'
 import type { Profile } from '@/lib/supabase'
 
 const ROLE_LABEL: Record<Profile['role'], string> = {
@@ -16,7 +16,6 @@ export default function BottomNav({ profile }: { profile: Profile }) {
   const items = [
     { href: '/', icon: Home, label: 'Início' },
     { href: '/pacientes', icon: Users, label: 'Pacientes' },
-    { href: '/curvas', icon: TrendingUp, label: 'Curvas' },
     { href: '/anamnese', icon: ClipboardList, label: 'Anamnese' },
     { href: '/financeiro', icon: DollarSign, label: 'Financeiro' },
     { href: '/perfil', icon: User, label: 'Perfil' },

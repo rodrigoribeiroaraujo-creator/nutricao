@@ -92,9 +92,9 @@ export default function PacientesPage() {
         ) : (
           <ul className="space-y-2">
             {filtrados.map(p => (
-              <li key={p.id}>
+              <li key={p.id} className="flex items-center gap-2">
                 <Link href={`/pacientes/${p.id}`}
-                  className="flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-orange-200 hover:shadow-sm transition">
+                  className="flex-1 flex items-center gap-4 bg-white border border-stone-100 rounded-xl p-4 hover:border-orange-200 hover:shadow-sm transition">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 ${p.sexo === 'M' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                     {p.nome.charAt(0).toUpperCase()}
                   </div>
@@ -103,6 +103,11 @@ export default function PacientesPage() {
                     <p className="text-xs text-stone-400">{p.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(p.data_nascimento)}</p>
                   </div>
                   <span className="text-stone-300 text-sm">›</span>
+                </Link>
+                <Link href={`/pacientes/${p.id}/curvas`}
+                  title="Curvas de crescimento"
+                  className="flex-shrink-0 flex items-center justify-center w-12 h-14 bg-white border border-stone-100 rounded-xl text-stone-400 hover:text-orange-700 hover:border-orange-200 transition">
+                  <span className="material-symbols-outlined leading-none" style={{ fontSize: '20px' }}>trending_up</span>
                 </Link>
               </li>
             ))}
