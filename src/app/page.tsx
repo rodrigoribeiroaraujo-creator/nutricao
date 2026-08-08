@@ -119,7 +119,7 @@ export default function Home() {
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-10">
 
           {/* Card 1 – Pacientes (full width on mobile) */}
-          <div className="col-span-2 md:col-span-1 bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+          <Link href="/pacientes" className="col-span-2 md:col-span-1 bg-white border border-stone-200 rounded-xl p-5 shadow-sm hover:border-orange-300 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-orange-100 rounded-lg">
                 <Icon n="groups" cls="text-orange-700 text-[22px]" />
@@ -155,10 +155,10 @@ export default function Home() {
                 <span className="text-stone-400">({total > 0 ? 100 - mascPct : 0}%)</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* Card 2 – Anamneses */}
-          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm">
+          <Link href="/anamnese" className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm hover:border-violet-300 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-violet-100 rounded-lg">
                 <Icon n="pending_actions" cls="text-violet-700 text-[22px]" />
@@ -175,10 +175,10 @@ export default function Home() {
               <Icon n="clinical_notes" cls="text-violet-300 text-sm" />
               <span className="text-xs text-stone-400">Histórico</span>
             </div>
-          </div>
+          </Link>
 
           {/* Card 3 – Consultas pendentes */}
-          <div className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm relative overflow-hidden">
+          <Link href="/financeiro" className="bg-white border border-stone-200 rounded-xl p-5 shadow-sm relative overflow-hidden hover:border-sky-300 hover:shadow-md transition-all">
             <div className="flex justify-between items-start mb-3">
               <span className="p-2 bg-sky-100 rounded-lg">
                 <Icon n="show_chart" cls="text-sky-700 text-[22px]" />
@@ -200,7 +200,7 @@ export default function Home() {
                 <path d="M0 80 Q 25 20, 50 60 T 100 30 L 100 100 L 0 100 Z" fill="#0ea5e9" />
               </svg>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* ── Recent Patients ── */}
