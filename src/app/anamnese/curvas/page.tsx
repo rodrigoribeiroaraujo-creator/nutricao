@@ -165,7 +165,7 @@ function CurvasContent() {
       if (!session) { router.replace('/login'); return }
       const p = await getProfile(session.user.id)
       setProfile(p)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   const pesoKg = parseFloat(searchParams.get('peso') ?? '0')

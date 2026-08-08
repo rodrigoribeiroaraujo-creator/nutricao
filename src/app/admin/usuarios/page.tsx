@@ -43,7 +43,7 @@ export default function AdminUsuariosPage() {
       if (p.role !== 'admin') { router.replace('/'); return }
       setMyProfile(p)
       getProfiles().then(setProfiles).finally(() => setLoading(false))
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   async function handleUpdate(id: string, field: 'role' | 'status', value: string) {

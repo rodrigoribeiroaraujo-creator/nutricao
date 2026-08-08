@@ -20,7 +20,7 @@ export default function NovoPaciente() {
       if (p.status === 'pending') { router.replace('/pendente'); return }
       if (p.status === 'blocked') { router.replace('/bloqueado'); return }
       setProfile(p)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   function set(k: string, v: string) { setForm(f => ({ ...f, [k]: v })) }

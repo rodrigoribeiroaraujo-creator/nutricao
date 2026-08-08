@@ -26,7 +26,7 @@ export default function AnamnesePage() {
       if (p.status === 'blocked') { router.replace('/bloqueado'); return }
       setProfile(p)
       getAnamnesesTea().then(setAnamneses).finally(() => setLoading(false))
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   async function handleDelete(id: string, nome: string) {

@@ -28,7 +28,7 @@ export default function PacientesPage() {
       if (p.status === 'blocked') { router.replace('/bloqueado'); return }
       setProfile(p)
       getPacientes().then(setPacientes).finally(() => setLoading(false))
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   const filtrados = pacientes.filter(p =>

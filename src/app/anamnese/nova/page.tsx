@@ -135,7 +135,7 @@ export default function NovaAnamnesePage() {
       if (p.role === 'assistente') { router.replace('/anamnese'); return }
       setProfile(p)
       setUserId(session.user.id)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   function set(k: keyof FormData, v: string) { setForm(f => ({ ...f, [k]: v })) }

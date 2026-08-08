@@ -62,7 +62,7 @@ export default function FinanceiroPage() {
       setConsultas(cs)
       setPacientes(pacs)
       setLoading(false)
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   async function handleCreate(e: React.FormEvent) {

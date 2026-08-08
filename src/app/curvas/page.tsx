@@ -26,7 +26,7 @@ export default function CurvasListPage() {
       const p = await getProfile(session.user.id)
       setProfile(p)
       getPacientes().then(setPacientes).finally(() => setLoading(false))
-    })
+    }).catch(() => router.replace('/login'))
   }, [router])
 
   const filtrados = pacientes.filter(p =>
