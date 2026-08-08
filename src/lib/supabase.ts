@@ -229,3 +229,39 @@ export async function deleteConsulta(id: string) {
   const { error } = await supabase.from('consultas').delete().eq('id', id)
   if (error) throw error
 }
+
+export type Suplementacao = {
+  id: string
+  paciente_id: string
+  nutriente_id: string
+  nutriente_nome: string
+  unidade: string
+  dose_prescrita: number
+  dose_dri: number | null
+  ul: number | null
+  is_ai: boolean
+  observacoes?: string | null
+  created_by: string | null
+  created_at: string
+}
+
+export async function getSuplemtacoes(pacienteId: string) {
+  const { data, error } = await supabase
+    .from('suplementacoes')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('nutriente_nome')
+  if (error) throw error
+  return data as Suplementacao[]
+}
+
+export async function createSuplemtacao(s: Omit<Suplementacao, 'id' | 'created_at'>) {
+  const { data, error } = await supabase.from('suplementacoes').insert(s).select().single()
+  if (error) throw error
+  return data as Suplementacao
+}
+
+export async function deleteSuplemtacao(id: string) {
+  const { error } = await supabase.from('suplementacoes').delete().eq('id', id)
+  if (error) throw error
+}
