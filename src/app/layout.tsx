@@ -35,9 +35,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="app-frame bg-stone-50">
           {children}
         </div>
-        <script dangerouslySetInnerHTML={{
-          __html: `if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js')`
-        }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            try {
+              var t = localStorage.getItem('theme');
+              if (t === 'dark') document.documentElement.classList.add('dark');
+            } catch(e){}
+          })();
+          if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');
+        `}} />
       </body>
     </html>
   )
