@@ -11,6 +11,7 @@ export type Paciente = {
   data_nascimento: string
   sexo: 'M' | 'F'
   observacoes?: string
+  created_by?: string | null
   created_at: string
   updated_at: string
 }
