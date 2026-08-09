@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit *)",
+      "mcp__536f01a7-5bdb-4e2b-986e-33daddf5cc54__list_deployments"
+    ]
+  }
+}
