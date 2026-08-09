@@ -7,15 +7,16 @@ import {
   getPaciente, getMedicoes, createMedicao, deleteMedicao, deletePaciente,
   getConsultasByPaciente, createConsulta, updateConsultaStatus, deleteConsulta,
   getSuplemtacoes, createSuplemtacao, deleteSuplemtacao,
+  getSessoesByPaciente, createSessao, deleteSessao,
   getSession, getProfile,
-  type Paciente, type Medicao, type Profile, type Consulta, type Suplementacao,
+  type Paciente, type Medicao, type Profile, type Consulta, type Suplementacao, type Sessao,
 } from '@/lib/supabase'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { NUTRIENTES_DRI, getEstagioVida, getDRI, type NutrienteDRI } from '@/lib/dri'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import BottomNav from '@/components/BottomNav'
 
-type Tab = 'medicoes' | 'suplementacao' | 'financeiro'
+type Tab = 'medicoes' | 'suplementacao' | 'financeiro' | 'sessoes'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
   const anos = calcIdadeAnos(dataNasc, dataRef)
@@ -103,6 +104,7 @@ export default function PacientePage() {
   const [medicoes, setMedicoes] = useState<Medicao[]>([])
   const [consultas, setConsultas] = useState<Consulta[]>([])
   const [suplementacoes, setSuplemtacoes] = useState<Suplementacao[]>([])
+  const [sessoes, setSessoes] = useState<Sessao[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -125,6 +127,18 @@ export default function PacientePage() {
     descricao: '',
   })
 
+  // sessões
+  const [showSessaoForm, setShowSessaoForm] = useState(false)
+  const [savingSessao, setSavingSessao] = useState(false)
+  const [sessaoForm, setSessaoForm] = useState({
+    data_sessao: new Date().toISOString().slice(0, 10),
+    peso_kg: '',
+    adesao: '' as string,
+    humor: '' as Sessao['humor'] | '',
+    observacoes: '',
+    metas_proximas: '',
+  })
+
   // suplementação
   const [showSuplModal, setShowSuplModal] = useState(false)
   const [selectedNutriente, setSelectedNutriente] = useState<NutrienteDRI | null>(null)
@@ -137,18 +151,20 @@ export default function PacientePage() {
     getSession().then(async session => {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
-      const [prof, p, m, cs, sups] = await Promise.all([
+      const [prof, p, m, cs, sups, sess] = await Promise.all([
         getProfile(session.user.id),
         getPaciente(id),
         getMedicoes(id),
         getConsultasByPaciente(id),
         getSuplemtacoes(id),
+        getSessoesByPaciente(id),
       ])
       setProfile(prof)
       setPaciente(p)
       setMedicoes(m)
       setConsultas(cs)
       setSuplemtacoes(sups)
+      setSessoes(sess)
       setLoading(false)
     }).catch(() => router.push('/'))
   }, [id, router])
@@ -255,6 +271,33 @@ export default function PacientePage() {
     setSuplemtacoes(s => s.filter(x => x.id !== supId))
   }
 
+  async function handleAddSessao(e: React.FormEvent) {
+    e.preventDefault()
+    setSavingSessao(true)
+    try {
+      const nova = await createSessao({
+        paciente_id: id,
+        data_sessao: sessaoForm.data_sessao,
+        numero_sessao: sessoes.length + 1,
+        peso_kg: sessaoForm.peso_kg ? parseFloat(sessaoForm.peso_kg) : null,
+        adesao: sessaoForm.adesao ? parseInt(sessaoForm.adesao) : null,
+        humor: (sessaoForm.humor || null) as Sessao['humor'],
+        observacoes: sessaoForm.observacoes || null,
+        metas_proximas: sessaoForm.metas_proximas || null,
+        created_by: userId,
+      })
+      setSessoes(s => [nova, ...s])
+      setShowSessaoForm(false)
+      setSessaoForm({ data_sessao: new Date().toISOString().slice(0, 10), peso_kg: '', adesao: '', humor: '', observacoes: '', metas_proximas: '' })
+    } finally { setSavingSessao(false) }
+  }
+
+  async function handleDeleteSessao(sessaoId: string) {
+    if (!confirm('Excluir registro de sessão?')) return
+    await deleteSessao(sessaoId)
+    setSessoes(s => s.filter(x => x.id !== sessaoId))
+  }
+
   if (loading) return <div className="flex items-center justify-center min-h-screen"><p className="text-stone-400">Carregando...</p></div>
   if (!paciente) return null
 
@@ -271,6 +314,7 @@ export default function PacientePage() {
   const TABS: { key: Tab; label: string; badge?: number }[] = [
     { key: 'medicoes', label: 'Medições' },
     { key: 'suplementacao', label: 'Suplementação', badge: suplementacoes.length || undefined },
+    { key: 'sessoes', label: 'Sessões', badge: sessoes.length || undefined },
     { key: 'financeiro', label: 'Financeiro' },
   ]
 
@@ -506,6 +550,118 @@ export default function PacientePage() {
                   <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>picture_as_pdf</span>
                   Exportar PDF
                 </button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Tab: Sessões ── */}
+        {tab === 'sessoes' && (
+          <>
+            {podeEditar && (
+              <button onClick={() => setShowSessaoForm(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-orange-300 text-orange-600 text-sm font-medium hover:bg-orange-50 transition">
+                <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>add</span>
+                Registrar sessão
+              </button>
+            )}
+
+            {showSessaoForm && podeEditar && (
+              <form onSubmit={handleAddSessao} className="bg-white border border-orange-200 rounded-2xl p-4 space-y-3">
+                <p className="font-medium text-stone-700 text-sm">Sessão #{sessoes.length + 1}</p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className="text-xs text-stone-500 block mb-1">Data</label>
+                    <input type="date" value={sessaoForm.data_sessao} onChange={e => setSessaoForm(f => ({ ...f, data_sessao: e.target.value }))} required className="w-full text-sm" />
+                  </div>
+                  <div className="flex-1">
+                    <label className="text-xs text-stone-500 block mb-1">Peso (kg)</label>
+                    <input type="text" inputMode="decimal" placeholder="Ex: 32.5" value={sessaoForm.peso_kg} onChange={e => setSessaoForm(f => ({ ...f, peso_kg: e.target.value }))} className="w-full text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Adesão ao plano</label>
+                  <div className="flex gap-2">
+                    {[1,2,3,4,5].map(n => (
+                      <button key={n} type="button" onClick={() => setSessaoForm(f => ({ ...f, adesao: String(n) }))}
+                        className={`flex-1 py-2 rounded-lg border text-sm font-bold transition ${sessaoForm.adesao === String(n) ? 'bg-orange-700 text-white border-orange-700' : 'bg-white text-stone-400 border-stone-200'}`}>
+                        {n}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-stone-400 mt-1">1 = péssima · 5 = ótima</p>
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Humor</label>
+                  <div className="flex gap-2">
+                    {([['otimo','😄'],['bom','🙂'],['neutro','😐'],['ruim','😕'],['pessimo','😞']] as [Sessao['humor'], string][]).map(([v, emoji]) => (
+                      <button key={v} type="button" onClick={() => setSessaoForm(f => ({ ...f, humor: v }))}
+                        className={`flex-1 py-2 rounded-lg border text-lg transition ${sessaoForm.humor === v ? 'bg-orange-50 border-orange-400' : 'bg-white border-stone-200'}`}>
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Observações</label>
+                  <textarea value={sessaoForm.observacoes} onChange={e => setSessaoForm(f => ({ ...f, observacoes: e.target.value }))} rows={2} placeholder="Como foi a sessão..." className="w-full text-sm resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Metas para próxima semana</label>
+                  <textarea value={sessaoForm.metas_proximas} onChange={e => setSessaoForm(f => ({ ...f, metas_proximas: e.target.value }))} rows={2} placeholder="O que o paciente vai trabalhar..." className="w-full text-sm resize-none" />
+                </div>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setShowSessaoForm(false)} className="flex-1 py-2.5 rounded-xl border border-stone-200 text-stone-500 text-sm font-medium">Cancelar</button>
+                  <button type="submit" disabled={savingSessao} className="flex-1 py-2.5 rounded-xl bg-orange-700 text-white text-sm font-medium disabled:opacity-50">
+                    {savingSessao ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {sessoes.length === 0 && !showSessaoForm ? (
+              <div className="bg-white border border-stone-100 rounded-2xl p-10 text-center">
+                <p className="text-stone-400 text-sm">Nenhuma sessão registrada.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sessoes.map(s => {
+                  const HUMOR_EMOJI: Record<string, string> = { otimo: '😄', bom: '🙂', neutro: '😐', ruim: '😕', pessimo: '😞' }
+                  return (
+                    <div key={s.id} className="bg-white border border-stone-100 rounded-2xl p-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <span className="font-semibold text-orange-700 text-sm">Sessão #{s.numero_sessao}</span>
+                          <span className="text-xs text-stone-400 ml-2">{new Date(s.data_sessao + 'T12:00:00').toLocaleDateString('pt-BR')}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {s.humor && <span className="text-lg leading-none">{HUMOR_EMOJI[s.humor]}</span>}
+                          {podeEditar && (
+                            <button onClick={() => handleDeleteSessao(s.id)} className="text-stone-300 hover:text-red-400">
+                              <span className="material-symbols-outlined leading-none" style={{ fontSize: '16px' }}>delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex gap-4 text-xs mb-2">
+                        {s.peso_kg != null && <span className="text-stone-600"><span className="text-stone-400">Peso:</span> {s.peso_kg} kg</span>}
+                        {s.adesao != null && (
+                          <span className="text-stone-600">
+                            <span className="text-stone-400">Adesão:</span>{' '}
+                            <span className="font-bold text-orange-700">{s.adesao}/5</span>
+                          </span>
+                        )}
+                      </div>
+                      {s.observacoes && <p className="text-xs text-stone-600 mb-1.5">{s.observacoes}</p>}
+                      {s.metas_proximas && (
+                        <div className="bg-orange-50 rounded-lg px-3 py-2 mt-2">
+                          <p className="text-xs text-stone-500 font-medium mb-0.5">Metas da próxima semana</p>
+                          <p className="text-xs text-stone-700">{s.metas_proximas}</p>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
           </>

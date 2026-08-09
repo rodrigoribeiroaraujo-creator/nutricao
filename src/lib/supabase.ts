@@ -248,6 +248,92 @@ export async function deleteConsulta(id: string) {
   if (error) throw error
 }
 
+export type Agendamento = {
+  id: string
+  paciente_id: string
+  data: string
+  hora_inicio: string
+  hora_fim?: string | null
+  tipo: 'consulta' | 'retorno' | 'avaliacao' | 'terapia'
+  status: 'agendado' | 'confirmado' | 'realizado' | 'cancelado' | 'falta'
+  observacoes?: string | null
+  created_by?: string | null
+  created_at: string
+  pacientes?: { nome: string } | null
+}
+
+export async function getAgendamentosByData(data: string) {
+  const { data: rows, error } = await supabase
+    .from('agendamentos')
+    .select('*, pacientes(nome)')
+    .eq('data', data)
+    .order('hora_inicio')
+  if (error) throw error
+  return rows as Agendamento[]
+}
+
+export async function getAgendamentosByPaciente(pacienteId: string) {
+  const { data: rows, error } = await supabase
+    .from('agendamentos')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('data', { ascending: false })
+  if (error) throw error
+  return rows as Agendamento[]
+}
+
+export async function createAgendamento(a: Omit<Agendamento, 'id' | 'created_at' | 'pacientes'>) {
+  const { data, error } = await supabase.from('agendamentos').insert(a).select().single()
+  if (error) throw error
+  return data as Agendamento
+}
+
+export async function updateAgendamentoStatus(id: string, status: Agendamento['status']) {
+  const { error } = await supabase.from('agendamentos').update({ status }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteAgendamento(id: string) {
+  const { error } = await supabase.from('agendamentos').delete().eq('id', id)
+  if (error) throw error
+}
+
+export type Sessao = {
+  id: string
+  paciente_id: string
+  agendamento_id?: string | null
+  data_sessao: string
+  numero_sessao?: number | null
+  peso_kg?: number | null
+  adesao?: number | null
+  humor?: 'otimo' | 'bom' | 'neutro' | 'ruim' | 'pessimo' | null
+  observacoes?: string | null
+  metas_proximas?: string | null
+  created_by?: string | null
+  created_at: string
+}
+
+export async function getSessoesByPaciente(pacienteId: string) {
+  const { data, error } = await supabase
+    .from('sessoes')
+    .select('*')
+    .eq('paciente_id', pacienteId)
+    .order('data_sessao', { ascending: false })
+  if (error) throw error
+  return data as Sessao[]
+}
+
+export async function createSessao(s: Omit<Sessao, 'id' | 'created_at'>) {
+  const { data, error } = await supabase.from('sessoes').insert(s).select().single()
+  if (error) throw error
+  return data as Sessao
+}
+
+export async function deleteSessao(id: string) {
+  const { error } = await supabase.from('sessoes').delete().eq('id', id)
+  if (error) throw error
+}
+
 export type Suplementacao = {
   id: string
   paciente_id: string
