@@ -274,6 +274,8 @@ export default function PacientePage() {
   async function handleAddSessao(e: React.FormEvent) {
     e.preventDefault()
     setSavingSessao(true)
+    // Open the PDF tab immediately (while still in the user gesture) so browsers allow it
+    const pdfTab = window.open('', '_blank')
     try {
       const nova = await createSessao({
         paciente_id: id,
@@ -289,6 +291,9 @@ export default function PacientePage() {
       setSessoes(s => [nova, ...s])
       setShowSessaoForm(false)
       setSessaoForm({ data_sessao: new Date().toISOString().slice(0, 10), peso_kg: '', adesao: '', humor: '', observacoes: '', metas_proximas: '' })
+      if (pdfTab) pdfTab.location.href = `/pacientes/${id}/sessoes/${nova.id}/pdf`
+    } catch {
+      pdfTab?.close()
     } finally { setSavingSessao(false) }
   }
 
