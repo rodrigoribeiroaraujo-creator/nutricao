@@ -341,12 +341,12 @@ export default function Home() {
                       <th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Paciente</th>
                       <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Idade</th>
                       <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Sexo</th>
-                      <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Ação</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {recentes.map(p => (
-                      <tr key={p.id} className="hover:bg-stone-50 transition-colors h-16">
+                      <tr key={p.id} onClick={() => router.push(`/pacientes/${p.id}`)}
+                        className="hover:bg-stone-50 transition-colors h-16 cursor-pointer">
                         <td className="px-4 py-3 max-w-0 w-full">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-orange-50 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
@@ -362,12 +362,6 @@ export default function Home() {
                           }`}>
                             {p.sexo === 'M' ? 'Masc.' : 'Fem.'}
                           </span>
-                        </td>
-                        <td className="px-2 py-3 text-right">
-                          <Link href={`/pacientes/${p.id}`}
-                            className="text-stone-400 hover:text-orange-700 transition-colors inline-flex">
-                            <Icon n="open_in_new" cls="text-lg" />
-                          </Link>
                         </td>
                       </tr>
                     ))}
