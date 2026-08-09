@@ -182,6 +182,19 @@ export default function PerfilPage() {
           </div>
         )}
 
+        {profile.role === 'admin' && (
+          <Link
+            href="/admin/lixeira"
+            className="w-full flex items-center justify-between py-3 px-4 rounded-xl border border-stone-100 bg-white text-sm font-medium text-stone-600 hover:bg-stone-50"
+          >
+            <span className="flex items-center gap-2">
+              <span className="material-symbols-outlined leading-none text-stone-400" style={{ fontSize: '18px' }}>delete</span>
+              Lixeira de pacientes
+            </span>
+            <span className="material-symbols-outlined leading-none text-stone-300" style={{ fontSize: '18px' }}>chevron_right</span>
+          </Link>
+        )}
+
         <button
           onClick={handleSignOut}
           className="w-full py-3 rounded-xl border border-red-200 text-red-500 font-medium text-sm hover:bg-red-50"
