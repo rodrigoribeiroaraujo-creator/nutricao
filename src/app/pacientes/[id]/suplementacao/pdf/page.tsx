@@ -31,12 +31,6 @@ export default function SuplemtacaoPDF() {
     })
   }, [id])
 
-  useEffect(() => {
-    if (ready) {
-      setTimeout(() => window.print(), 400)
-    }
-  }, [ready])
-
   if (!ready || !paciente) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontFamily: 'sans-serif', color: '#78716c' }}>
