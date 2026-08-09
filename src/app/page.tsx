@@ -1,6 +1,6 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -25,6 +25,20 @@ function idadeStr(dataNasc: string) {
   return `${Math.floor(anos)}a`
 }
 
+function useDarkMode() {
+  const [dark, setDark] = useState(false)
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains('dark'))
+  }, [])
+  function toggle() {
+    const next = !dark
+    setDark(next)
+    document.documentElement.classList.toggle('dark', next)
+    try { localStorage.setItem('theme', next ? 'dark' : 'light') } catch {}
+  }
+  return { dark, toggle }
+}
+
 export default function Home() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -33,6 +47,12 @@ export default function Home() {
   const [consultas, setConsultas] = useState<Consulta[]>([])
   const [loading, setLoading] = useState(true)
   const [scrolled, setScrolled] = useState(false)
+
+  const [showSearch, setShowSearch] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showNotifs, setShowNotifs] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const { dark, toggle: toggleDark } = useDarkMode()
 
   useEffect(() => {
     const el = document.getElementById('main-scroll')
@@ -70,12 +90,16 @@ export default function Home() {
   const total = pacientes.length
   const masculinos = pacientes.filter(p => p.sexo === 'M').length
   const femininos = pacientes.filter(p => p.sexo === 'F').length
-  const pendentes = consultas.filter(c => c.status === 'pendente').length
+  const pendentes = consultas.filter(c => c.status === 'pendente')
   const recentes = [...pacientes]
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 5)
   const mascPct = total > 0 ? Math.round((masculinos / total) * 100) : 0
   const podeAdicionarPaciente = profile.role !== 'assistente'
+
+  const searchResults = searchQuery.trim()
+    ? pacientes.filter(p => p.nome.toLowerCase().includes(searchQuery.toLowerCase()))
+    : []
 
   return (
     <div className="min-h-dvh flex flex-col md:pl-56 bg-stone-50">
@@ -89,18 +113,107 @@ export default function Home() {
           <Icon n="clinical_notes" cls="text-orange-700 text-[26px]" />
           <span className="font-extrabold text-lg text-orange-700 tracking-tight">KR Nutri Pro</span>
         </div>
-        <div className="flex items-center gap-4">
-          <button className="text-stone-400 hover:text-stone-600 transition-colors">
+        <div className="flex items-center gap-3">
+          {/* Busca */}
+          <button onClick={() => { setShowSearch(true); setTimeout(() => searchInputRef.current?.focus(), 50) }}
+            className="text-stone-400 hover:text-stone-600 transition-colors">
             <Icon n="search" cls="text-[22px]" />
           </button>
-          <button className="text-stone-400 hover:text-stone-600 transition-colors">
-            <Icon n="notifications" cls="text-[22px]" />
-          </button>
-          <div className="w-8 h-8 rounded-full bg-orange-100 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
-            {profile.email.charAt(0).toUpperCase()}
+
+          {/* Notificações */}
+          <div className="relative">
+            <button onClick={() => setShowNotifs(s => !s)} className="text-stone-400 hover:text-stone-600 transition-colors relative">
+              <Icon n="notifications" cls="text-[22px]" />
+              {pendentes.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+                  {pendentes.length > 9 ? '9+' : pendentes.length}
+                </span>
+              )}
+            </button>
+            {showNotifs && (
+              <div className="absolute right-0 top-9 w-72 bg-white border border-stone-200 rounded-2xl shadow-xl z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-stone-800">Consultas pendentes</p>
+                  <button onClick={() => setShowNotifs(false)} className="text-stone-400 text-lg leading-none">✕</button>
+                </div>
+                {pendentes.length === 0 ? (
+                  <p className="px-4 py-5 text-sm text-stone-400 text-center">Nenhuma pendência</p>
+                ) : (
+                  <ul className="max-h-64 overflow-y-auto divide-y divide-stone-100">
+                    {pendentes.map(c => (
+                      <li key={c.id} className="px-4 py-3">
+                        <p className="text-sm font-medium text-stone-800">
+                          {c.pacientes?.nome ?? 'Paciente'}
+                        </p>
+                        <p className="text-xs text-stone-400 mt-0.5">
+                          {new Date(c.data + 'T12:00:00').toLocaleDateString('pt-BR')} · R$ {c.valor.toFixed(2).replace('.', ',')}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <div className="px-4 py-3 border-t border-stone-100">
+                  <Link href="/financeiro" onClick={() => setShowNotifs(false)}
+                    className="text-xs text-orange-700 font-semibold hover:underline">
+                    Ver financeiro →
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Dark mode toggle */}
+          <button onClick={toggleDark} className="text-stone-400 hover:text-stone-600 transition-colors" title={dark ? 'Modo claro' : 'Modo escuro'}>
+            <Icon n={dark ? 'light_mode' : 'dark_mode'} cls="text-[22px]" />
+          </button>
+
+          {/* Avatar → perfil */}
+          <Link href="/perfil" className="w-8 h-8 rounded-full bg-orange-100 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0 hover:bg-orange-200 transition-colors">
+            {profile.email.charAt(0).toUpperCase()}
+          </Link>
         </div>
       </header>
+
+      {/* ── Overlay de busca ── */}
+      {showSearch && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex flex-col" onClick={() => { setShowSearch(false); setSearchQuery('') }}>
+          <div className="bg-white w-full shadow-xl" style={{ paddingTop: 'env(safe-area-inset-top)' }} onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-100">
+              <Icon n="search" cls="text-stone-400 text-[22px]" />
+              <input
+                ref={searchInputRef}
+                type="search"
+                placeholder="Buscar paciente..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="flex-1 border-0 focus:ring-0 text-base bg-transparent p-0"
+                autoComplete="off"
+              />
+              <button onClick={() => { setShowSearch(false); setSearchQuery('') }} className="text-stone-400 text-xl leading-none">✕</button>
+            </div>
+            {searchQuery.trim() && (
+              <ul className="max-h-80 overflow-y-auto divide-y divide-stone-100">
+                {searchResults.length === 0 ? (
+                  <li className="px-6 py-5 text-sm text-stone-400 text-center">Nenhum paciente encontrado</li>
+                ) : searchResults.map(p => (
+                  <li key={p.id}>
+                    <Link href={`/pacientes/${p.id}`} onClick={() => { setShowSearch(false); setSearchQuery('') }}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-stone-50 transition-colors">
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${p.sexo === 'M' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                        {p.nome.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-stone-800">{p.nome}</p>
+                        <p className="text-xs text-stone-400">{p.sexo === 'M' ? 'Masculino' : 'Feminino'} · {idadeStr(p.data_nascimento)}</p>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Main ── */}
       <main
@@ -187,7 +300,7 @@ export default function Home() {
             <p className="text-xs font-semibold text-stone-500 uppercase tracking-wide">Pendentes</p>
             <div className="flex items-baseline gap-1 mt-1 mb-3">
               <span className="text-3xl font-extrabold text-stone-900">
-                {loading ? '—' : pendentes}
+                {loading ? '—' : pendentes.length}
               </span>
               <span className="text-xs font-bold text-stone-400">consul.</span>
             </div>

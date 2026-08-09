@@ -25,7 +25,7 @@ export default function BottomNav({ profile }: { profile: Profile }) {
     <>
       {/* Mobile: bottom tab bar */}
       <nav
-        className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white border-t border-stone-100 flex items-center justify-around z-50"
+        className="md:hidden fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white dark:bg-stone-900 border-t border-stone-100 dark:border-stone-700 flex items-center justify-around z-50"
         style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
       >
         {items.map(({ href, icon: Icon, label }) => {
