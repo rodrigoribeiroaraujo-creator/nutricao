@@ -639,7 +639,7 @@ export default function PacientePage() {
                 <label className="text-xs text-stone-500 block mb-1">
                   Dose prescrita {selectedNutriente ? `(${selectedNutriente.unidade})` : ''}
                 </label>
-                <input type="number" step="0.1" min="0.01" value={dose} onChange={e => setDose(e.target.value)} placeholder="0" required className="w-full" />
+                <input type="text" inputMode="decimal" value={dose} onChange={e => setDose(e.target.value)} placeholder="0" required className="w-full" />
                 {driPreview?.ul != null && parseFloat(dose) > driPreview.ul && (
                   <p className="text-xs text-red-500 mt-1">⚠ Dose acima do UL ({driPreview.ul} {selectedNutriente?.unidade})</p>
                 )}
