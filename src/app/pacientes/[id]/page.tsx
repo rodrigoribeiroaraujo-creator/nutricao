@@ -499,6 +499,13 @@ export default function PacientePage() {
                 <p className="text-xs text-stone-400 text-center pt-2">
                   Referências DRI: Padovani et al., Rev. Nutr. 2006;19(6):741-760
                 </p>
+                <button
+                  onClick={() => window.open(`/pacientes/${id}/suplementacao/pdf`, '_blank')}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-orange-200 text-orange-700 text-sm font-semibold bg-orange-50 hover:bg-orange-100 transition"
+                >
+                  <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>picture_as_pdf</span>
+                  Exportar PDF
+                </button>
               </div>
             )}
           </>
