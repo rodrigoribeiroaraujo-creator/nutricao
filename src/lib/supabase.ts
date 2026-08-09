@@ -313,6 +313,12 @@ export type Sessao = {
   created_at: string
 }
 
+export async function getSessao(id: string) {
+  const { data, error } = await supabase.from('sessoes').select('*').eq('id', id).single()
+  if (error) throw error
+  return data as Sessao
+}
+
 export async function getSessoesByPaciente(pacienteId: string) {
   const { data, error } = await supabase
     .from('sessoes')
