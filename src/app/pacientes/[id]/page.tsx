@@ -659,6 +659,13 @@ export default function PacientePage() {
                           <p className="text-xs text-stone-700">{s.metas_proximas}</p>
                         </div>
                       )}
+                      <button
+                        onClick={() => window.open(`/pacientes/${id}/sessoes/${s.id}/pdf`, '_blank')}
+                        className="mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-orange-200 text-orange-700 text-xs font-semibold bg-orange-50 hover:bg-orange-100 transition"
+                      >
+                        <span className="material-symbols-outlined leading-none" style={{ fontSize: '15px' }}>picture_as_pdf</span>
+                        Exportar relatório
+                      </button>
                     </div>
                   )
                 })}
