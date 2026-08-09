@@ -12,6 +12,7 @@ export type Paciente = {
   sexo: 'M' | 'F'
   observacoes?: string
   created_by?: string | null
+  deleted_at?: string | null
   created_at: string
   updated_at: string
 }
@@ -31,7 +32,13 @@ export type Medicao = {
 }
 
 export async function getPacientes() {
-  const { data, error } = await supabase.from('pacientes').select('*').order('nome')
+  const { data, error } = await supabase.from('pacientes').select('*').is('deleted_at', null).order('nome')
+  if (error) throw error
+  return data as Paciente[]
+}
+
+export async function getPacientesLixeira() {
+  const { data, error } = await supabase.from('pacientes').select('*').not('deleted_at', 'is', null).order('deleted_at', { ascending: false })
   if (error) throw error
   return data as Paciente[]
 }
@@ -55,6 +62,16 @@ export async function updatePaciente(id: string, p: Partial<Omit<Paciente, 'id' 
 }
 
 export async function deletePaciente(id: string) {
+  const { error } = await supabase.from('pacientes').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+  if (error) throw error
+}
+
+export async function restorePaciente(id: string) {
+  const { error } = await supabase.from('pacientes').update({ deleted_at: null }).eq('id', id)
+  if (error) throw error
+}
+
+export async function hardDeletePaciente(id: string) {
   const { error } = await supabase.from('pacientes').delete().eq('id', id)
   if (error) throw error
 }
