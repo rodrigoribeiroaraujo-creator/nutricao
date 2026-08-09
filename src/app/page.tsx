@@ -338,45 +338,34 @@ export default function Home() {
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-stone-50 border-b border-stone-200">
-                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Paciente</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Idade</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Sexo</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Cadastro</th>
-                      <th className="px-6 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Ação</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Paciente</th>
+                      <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Idade</th>
+                      <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider">Sexo</th>
+                      <th className="px-2 py-3 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">Ação</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100">
                     {recentes.map(p => (
-                      <tr key={p.id} className="hover:bg-stone-50 transition-colors">
-                        <td className="px-6 py-4">
+                      <tr key={p.id} className="hover:bg-stone-50 transition-colors h-16">
+                        <td className="px-4 py-3 max-w-0 w-full">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-orange-50 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-orange-50 border border-stone-200 flex items-center justify-center text-orange-800 font-bold text-sm flex-shrink-0">
                               {p.nome.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <p className="font-semibold text-stone-900 text-sm">{p.nome}</p>
-                              <p className="text-xs text-stone-400">#{p.id.slice(0, 8).toUpperCase()}</p>
-                            </div>
+                            <p className="font-semibold text-stone-900 text-sm truncate">{p.nome}</p>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-stone-500">{idadeStr(p.data_nascimento)}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                            p.sexo === 'M'
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'bg-pink-50 text-pink-700'
+                        <td className="px-2 py-3 text-sm text-stone-500 whitespace-nowrap">{idadeStr(p.data_nascimento)}</td>
+                        <td className="px-2 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                            p.sexo === 'M' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-700'
                           }`}>
-                            {p.sexo === 'M' ? 'Masculino' : 'Feminino'}
+                            {p.sexo === 'M' ? 'Masc.' : 'Fem.'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-stone-500">
-                          {new Date(p.created_at).toLocaleDateString('pt-BR')}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <Link
-                            href={`/pacientes/${p.id}`}
-                            className="text-stone-400 hover:text-orange-700 transition-colors inline-flex"
-                          >
+                        <td className="px-2 py-3 text-right">
+                          <Link href={`/pacientes/${p.id}`}
+                            className="text-stone-400 hover:text-orange-700 transition-colors inline-flex">
                             <Icon n="open_in_new" cls="text-lg" />
                           </Link>
                         </td>
