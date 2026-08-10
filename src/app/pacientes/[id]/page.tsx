@@ -527,9 +527,7 @@ export default function PacientePage() {
                             <td className="px-2 py-3">
                               {podeEditar && (
                                 <div className="flex items-center gap-1">
-                                  <button onClick={() => { setEditingMedicaoId(m.id); setEditMedicaoForm({ data_medicao: m.data_medicao, peso_kg: String(m.peso_kg), altura_cm: String(m.altura_cm) }) }} className="text-stone-300 hover:text-orange-500 p-2" title="Editar">
-                                    <span className="material-symbols-outlined leading-none" style={{ fontSize: '20px' }}>edit</span>
-                                  </button>
+                                  <button onClick={() => { setEditingMedicaoId(m.id); setEditMedicaoForm({ data_medicao: m.data_medicao, peso_kg: String(m.peso_kg), altura_cm: String(m.altura_cm) }) }} className="text-stone-300 hover:text-orange-500 p-1 text-xs">✎</button>
                                   {profile?.role === 'admin' && (
                                     <button onClick={async () => { if (confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) } }} className="text-stone-300 hover:text-red-400 p-1 text-xs">✕</button>
                                   )}
