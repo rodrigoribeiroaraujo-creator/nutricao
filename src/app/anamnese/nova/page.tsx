@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { createAnamneseTea, getSession, getProfile, type Profile } from '@/lib/supabase'
@@ -120,12 +120,17 @@ function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
 
 export default function NovaAnamnesePage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const pacienteId = searchParams.get('pacienteId')
-  const pacienteNome = searchParams.get('nome') ?? ''
-
+  const [pacienteId, setPacienteId] = useState<string | null>(null)
   const [step, setStep] = useState(1)
-  const [form, setForm] = useState<FormData>({ ...INITIAL, nome_paciente: pacienteNome })
+  const [form, setForm] = useState<FormData>(INITIAL)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const pid = params.get('pacienteId')
+    const nome = params.get('nome') ?? ''
+    if (pid) setPacienteId(pid)
+    if (nome) setForm(f => ({ ...f, nome_paciente: nome }))
+  }, [])
   const [chartTipo, setChartTipo] = useState<ChartTipo>('imc')
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')

@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   getPaciente, getMedicoes, createMedicao, updateMedicao, deleteMedicao, deletePaciente,
@@ -100,8 +100,7 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
 export default function PacientePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'medicoes')
+  const [tab, setTab] = useState<Tab>('medicoes')
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [medicoes, setMedicoes] = useState<Medicao[]>([])
   const [consultas, setConsultas] = useState<Consulta[]>([])
@@ -152,6 +151,12 @@ export default function PacientePage() {
   const [obsSupl, setObsSupl] = useState('')
   const [savingSupl, setSavingSupl] = useState(false)
   const [erroSupl, setErroSupl] = useState('')
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const t = params.get('tab') as Tab | null
+    if (t) setTab(t)
+  }, [])
 
   useEffect(() => {
     getSession().then(async session => {
