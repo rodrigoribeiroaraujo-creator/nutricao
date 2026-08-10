@@ -758,18 +758,16 @@ export default function PacientePage() {
 
             {showConsultaForm && (
               <form onSubmit={handleAddConsulta} className="bg-white border border-orange-200 rounded-2xl p-4 space-y-3">
-                <div className="flex gap-3">
-                  <div className="flex-1">
-                    <label className="text-xs text-stone-500 block mb-1">Data</label>
-                    <input type="date" value={consultaForm.data} onChange={e => setConsultaForm(f => ({ ...f, data: e.target.value }))} required className="w-full text-sm" />
-                  </div>
-                  <div className="flex-1">
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Data</label>
+                  <input type="date" value={consultaForm.data} onChange={e => setConsultaForm(f => ({ ...f, data: e.target.value }))} required className="w-full text-sm" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
                     <label className="text-xs text-stone-500 block mb-1">Valor (R$)</label>
                     <input type="text" inputMode="decimal" placeholder="0,00" value={consultaForm.valor} onChange={e => setConsultaForm(f => ({ ...f, valor: e.target.value }))} required className="w-full text-sm" />
                   </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1">
+                  <div>
                     <label className="text-xs text-stone-500 block mb-1">Status</label>
                     <select value={consultaForm.status} onChange={e => setConsultaForm(f => ({ ...f, status: e.target.value as Consulta['status'] }))} className="w-full text-sm">
                       <option value="pendente">Pendente</option>
@@ -777,10 +775,10 @@ export default function PacientePage() {
                       <option value="cancelado">Cancelado</option>
                     </select>
                   </div>
-                  <div className="flex-1">
-                    <label className="text-xs text-stone-500 block mb-1">Descrição</label>
-                    <input type="text" placeholder="Ex: Retorno…" value={consultaForm.descricao} onChange={e => setConsultaForm(f => ({ ...f, descricao: e.target.value }))} className="w-full text-sm" />
-                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Descrição</label>
+                  <input type="text" placeholder="Ex: Retorno…" value={consultaForm.descricao} onChange={e => setConsultaForm(f => ({ ...f, descricao: e.target.value }))} className="w-full text-sm" />
                 </div>
                 {erroConsulta && <p className="text-sm text-red-500">{erroConsulta}</p>}
                 <button type="submit" disabled={savingConsulta} className="w-full bg-orange-700 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-orange-800 disabled:opacity-50">
