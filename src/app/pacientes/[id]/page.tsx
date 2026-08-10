@@ -325,7 +325,7 @@ export default function PacientePage() {
   ]
 
   return (
-    <div className="min-h-dvh flex flex-col md:pl-56">
+    <div className="h-dvh flex flex-col md:pl-56 overflow-hidden">
       {/* Header */}
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -374,7 +374,7 @@ export default function PacientePage() {
           <div className="flex gap-1 px-4 min-w-max">
             {TABS.map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`relative flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-orange-700 text-orange-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}>
+                className={`relative flex-shrink-0 flex items-center gap-1 px-3 py-2.5 text-xs font-medium border-b-2 transition-colors ${tab === t.key ? 'border-orange-700 text-orange-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}>
                 {t.label}
                 {t.badge ? (
                   <span className="bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{t.badge}</span>
