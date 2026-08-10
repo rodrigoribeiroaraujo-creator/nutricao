@@ -16,7 +16,7 @@ import { NUTRIENTES_DRI, getEstagioVida, getDRI, type NutrienteDRI } from '@/lib
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import BottomNav from '@/components/BottomNav'
 
-type Tab = 'medicoes' | 'suplementacao' | 'financeiro' | 'sessoes'
+type Tab = 'medicoes' | 'curvas' | 'suplementacao' | 'financeiro' | 'sessoes'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
   const anos = calcIdadeAnos(dataNasc, dataRef)
@@ -318,6 +318,7 @@ export default function PacientePage() {
 
   const TABS: { key: Tab; label: string; badge?: number }[] = [
     { key: 'medicoes', label: 'Medições' },
+    { key: 'curvas', label: 'Curvas' },
     { key: 'suplementacao', label: 'Suplementação', badge: suplementacoes.length || undefined },
     { key: 'sessoes', label: 'Sessões', badge: sessoes.length || undefined },
     { key: 'financeiro', label: 'Financeiro' },
@@ -490,6 +491,64 @@ export default function PacientePage() {
                 </div>
               )}
             </div>
+          </>
+        )}
+
+        {/* ── Tab: Curvas ── */}
+        {tab === 'curvas' && (
+          <>
+            {medicoes.length === 0 ? (
+              <div className="bg-white border border-stone-100 rounded-xl p-10 text-center text-stone-400">
+                <p className="text-4xl mb-3">📊</p>
+                <p className="text-sm">Nenhuma medição registrada.</p>
+                <button onClick={() => setTab('medicoes')} className="mt-2 text-orange-700 text-sm hover:underline">
+                  Ir para Medições →
+                </button>
+              </div>
+            ) : ultima && ageAtLast !== null ? (
+              <>
+                {/* Cards de classificação para cada métrica */}
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { label: 'IMC', tipo: 'imc' as const, dataset: WHO_IMC, raw: ultima.imc, unit: 'kg/m²', value: ultima.imc?.toFixed(1) },
+                      { label: 'Peso', tipo: 'peso' as const, dataset: WHO_PESO, raw: ultima.peso_kg, unit: 'kg', value: `${ultima.peso_kg}` },
+                      { label: 'Altura', tipo: 'altura' as const, dataset: WHO_ALTURA, raw: ultima.altura_cm, unit: 'cm', value: `${ultima.altura_cm}` },
+                    ] as const
+                  ).map(c => {
+                    const { zone, label: zLabel } = classifyZScore(c.raw, ageAtLast, c.dataset, c.tipo, paciente.sexo)
+                    const status = getNutritionalStatus(zone, c.tipo, ageAtLast)
+                    const colorClass =
+                      zone === 'critical_low' || zone === 'critical_high' ? 'border-red-200 bg-red-50 text-red-700' :
+                      zone === 'low' || zone === 'very_high' ? 'border-amber-200 bg-amber-50 text-amber-700' :
+                      zone === 'high' ? 'border-yellow-200 bg-yellow-50 text-yellow-700' :
+                      'border-orange-200 bg-orange-50 text-orange-800'
+                    return (
+                      <div key={c.label}
+                        onClick={() => setActiveChartTab(c.tipo)}
+                        className={`border rounded-xl p-3 cursor-pointer transition-all ${colorClass} ${activeChartTab === c.tipo ? 'ring-2 ring-orange-400 ring-offset-1' : 'opacity-80 hover:opacity-100'}`}>
+                        <p className="text-[10px] font-semibold uppercase tracking-wide opacity-60">{c.label}</p>
+                        <p className="font-bold text-base leading-tight mt-0.5">{c.value} <span className="text-[10px] font-normal opacity-60">{c.unit}</span></p>
+                        <p className="text-[10px] font-semibold mt-1 leading-tight">{status}</p>
+                        <p className="text-[10px] opacity-50 mt-0.5">{zLabel}</p>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Seletor de gráfico */}
+                <div className="flex gap-2">
+                  {(['imc', 'peso', 'altura'] as const).map(t => (
+                    <button key={t} onClick={() => setActiveChartTab(t)}
+                      className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${activeChartTab === t ? 'bg-orange-700 text-white' : 'bg-white border border-stone-200 text-stone-500'}`}>
+                      {t === 'imc' ? 'IMC' : t === 'peso' ? 'Peso' : 'Altura'}
+                    </button>
+                  ))}
+                </div>
+
+                <CurvaChart paciente={paciente} medicoes={medicoes} tipo={activeChartTab} />
+              </>
+            ) : null}
           </>
         )}
 
