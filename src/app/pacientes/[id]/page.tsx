@@ -519,7 +519,6 @@ export default function PacientePage() {
                           <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                             <td className="px-3 py-3 text-stone-600 text-xs">
                               {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
-                              {i === medicoes.length - 1 && <span className="ml-1 text-orange-600 font-medium">recente</span>}
                             </td>
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.peso_kg} kg</td>
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.altura_cm} cm</td>
@@ -527,7 +526,7 @@ export default function PacientePage() {
                             <td className="px-2 py-3">
                               {podeEditar && (
                                 <div className="flex items-center gap-1">
-                                  <button onClick={() => { setEditingMedicaoId(m.id); setEditMedicaoForm({ data_medicao: m.data_medicao, peso_kg: String(m.peso_kg), altura_cm: String(m.altura_cm) }) }} className="text-stone-300 hover:text-orange-500 p-1 text-xs">✎</button>
+                                  <button onClick={() => { setEditingMedicaoId(m.id); setEditMedicaoForm({ data_medicao: m.data_medicao, peso_kg: String(m.peso_kg), altura_cm: String(m.altura_cm) }) }} className="text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1.5 hover:bg-orange-100">Editar</button>
                                   {profile?.role === 'admin' && (
                                     <button onClick={async () => { if (confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) } }} className="text-stone-300 hover:text-red-400 p-1 text-xs">✕</button>
                                   )}
