@@ -548,6 +548,41 @@ export default function PacientePage() {
                   ))}
                 </div>
 
+                {/* Card de estado nutricional em destaque */}
+                {(() => {
+                  const c = activeChartTab === 'imc'
+                    ? { dataset: WHO_IMC, raw: ultima.imc }
+                    : activeChartTab === 'peso'
+                    ? { dataset: WHO_PESO, raw: ultima.peso_kg }
+                    : { dataset: WHO_ALTURA, raw: ultima.altura_cm }
+                  const { zone, label: zLabel } = classifyZScore(c.raw, ageAtLast, c.dataset, activeChartTab, paciente.sexo)
+                  const status = getNutritionalStatus(zone, activeChartTab, ageAtLast)
+                  const icon = zone === 'critical_low' || zone === 'critical_high' ? '🔴'
+                    : zone === 'low' || zone === 'very_high' ? '🟠'
+                    : zone === 'high' ? '🟡' : '🟢'
+                  const colorClass = zone === 'critical_low' || zone === 'critical_high'
+                    ? 'border-red-200 bg-red-50 text-red-700'
+                    : zone === 'low' || zone === 'very_high'
+                    ? 'border-amber-200 bg-amber-50 text-amber-700'
+                    : zone === 'high'
+                    ? 'border-yellow-200 bg-yellow-50 text-yellow-700'
+                    : 'border-orange-200 bg-orange-50 text-orange-800'
+                  return (
+                    <div className={`border rounded-2xl px-5 py-4 ${colorClass}`}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide opacity-60">Estado Nutricional</p>
+                          <p className="text-xl font-bold mt-1">{icon} {status}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs opacity-60">Escore-Z</p>
+                          <p className="text-sm font-semibold mt-1">{zLabel}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+
                 <CurvaChart paciente={paciente} medicoes={medicoes} tipo={activeChartTab} />
               </>
             ) : null}
