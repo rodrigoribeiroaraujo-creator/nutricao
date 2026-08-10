@@ -370,20 +370,22 @@ export default function PacientePage() {
         </div>
 
         {/* Tab bar */}
-        <div className="max-w-3xl mx-auto px-4 flex gap-1 pb-0">
-          {TABS.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-orange-700 text-orange-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}>
-              {t.label}
-              {t.badge ? (
-                <span className="bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{t.badge}</span>
-              ) : null}
-            </button>
-          ))}
+        <div className="max-w-3xl mx-auto overflow-x-auto scrollbar-none">
+          <div className="flex gap-1 px-4 min-w-max">
+            {TABS.map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`relative flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${tab === t.key ? 'border-orange-700 text-orange-700' : 'border-transparent text-stone-400 hover:text-stone-600'}`}>
+                {t.label}
+                {t.badge ? (
+                  <span className="bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">{t.badge}</span>
+                ) : null}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-6 pb-28 md:pb-6">
+      <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 space-y-6 pb-28 md:pb-6 overflow-y-auto">
 
         {/* ── Tab: Medições ── */}
         {tab === 'medicoes' && (
