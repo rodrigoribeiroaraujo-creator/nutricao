@@ -88,6 +88,12 @@ export async function createMedicao(m: Omit<Medicao, 'id' | 'imc' | 'created_at'
   return data as Medicao
 }
 
+export async function updateMedicao(id: string, m: { data_medicao: string; peso_kg: number; altura_cm: number }) {
+  const { data, error } = await supabase.from('medicoes').update(m).eq('id', id).select().single()
+  if (error) throw error
+  return data as Medicao
+}
+
 export async function deleteMedicao(id: string) {
   const { error } = await supabase.from('medicoes').delete().eq('id', id)
   if (error) throw error

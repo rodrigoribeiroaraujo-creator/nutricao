@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  getPaciente, getMedicoes, createMedicao, deleteMedicao, deletePaciente,
+  getPaciente, getMedicoes, createMedicao, updateMedicao, deleteMedicao, deletePaciente,
   getConsultasByPaciente, createConsulta, updateConsultaStatus, deleteConsulta,
   getSuplemtacoes, createSuplemtacao, deleteSuplemtacao,
   getSessoesByPaciente, createSessao, deleteSessao,
@@ -115,6 +115,9 @@ export default function PacientePage() {
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
   const [form, setForm] = useState({ data_medicao: new Date().toISOString().split('T')[0], peso_kg: '', altura_cm: '', observacoes: '' })
+  const [editingMedicaoId, setEditingMedicaoId] = useState<string | null>(null)
+  const [editMedicaoForm, setEditMedicaoForm] = useState({ data_medicao: '', peso_kg: '', altura_cm: '' })
+  const [savingEdit, setSavingEdit] = useState(false)
 
   // financeiro
   const [showConsultaForm, setShowConsultaForm] = useState(false)
@@ -189,6 +192,20 @@ export default function PacientePage() {
       setForm(f => ({ ...f, peso_kg: '', altura_cm: '', observacoes: '' }))
     } catch (err: any) { setErro(err.message) }
     finally { setSaving(false) }
+  }
+
+  async function handleSaveMedicaoEdit(medicaoId: string) {
+    setSavingEdit(true)
+    try {
+      const updated = await updateMedicao(medicaoId, {
+        data_medicao: editMedicaoForm.data_medicao,
+        peso_kg: parseFloat(editMedicaoForm.peso_kg),
+        altura_cm: parseFloat(editMedicaoForm.altura_cm),
+      })
+      setMedicoes(ms => ms.map(m => m.id === medicaoId ? updated : m))
+      setEditingMedicaoId(null)
+    } catch { /* ignore */ }
+    finally { setSavingEdit(false) }
   }
 
   async function handleAddConsulta(e: React.FormEvent) {
@@ -470,8 +487,35 @@ export default function PacientePage() {
                     <tbody>
                       {medicoes.map((m, i) => {
                         const ageY = calcIdadeAnos(paciente.data_nascimento, m.data_medicao)
-                        const z = classifyZScore(m.imc, ageY, WHO_IMC, 'imc', paciente.sexo).zone
-                        return (
+                        const isEditing = editingMedicaoId === m.id
+                        return isEditing ? (
+                          <tr key={m.id} className="border-b border-orange-100 bg-orange-50">
+                            <td className="px-2 py-2" colSpan={5}>
+                              <div className="flex flex-col gap-2">
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div>
+                                    <p className="text-[10px] text-stone-400 mb-1">Data</p>
+                                    <input type="date" value={editMedicaoForm.data_medicao} onChange={e => setEditMedicaoForm(f => ({ ...f, data_medicao: e.target.value }))} className="w-full text-xs" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] text-stone-400 mb-1">Peso (kg)</p>
+                                    <input type="number" step="0.1" value={editMedicaoForm.peso_kg} onChange={e => setEditMedicaoForm(f => ({ ...f, peso_kg: e.target.value }))} className="w-full text-xs" />
+                                  </div>
+                                  <div>
+                                    <p className="text-[10px] text-stone-400 mb-1">Altura (cm)</p>
+                                    <input type="number" step="0.1" value={editMedicaoForm.altura_cm} onChange={e => setEditMedicaoForm(f => ({ ...f, altura_cm: e.target.value }))} className="w-full text-xs" />
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button onClick={() => handleSaveMedicaoEdit(m.id)} disabled={savingEdit} className="flex-1 bg-orange-700 text-white text-xs py-1.5 rounded-lg font-medium disabled:opacity-50">
+                                    {savingEdit ? 'Salvando…' : 'Salvar'}
+                                  </button>
+                                  <button onClick={() => setEditingMedicaoId(null)} className="flex-1 border border-stone-200 text-stone-500 text-xs py-1.5 rounded-lg">Cancelar</button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ) : (
                           <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                             <td className="px-3 py-3 text-stone-600 text-xs">
                               {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
@@ -481,8 +525,13 @@ export default function PacientePage() {
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.altura_cm} cm</td>
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.imc?.toFixed(1)}</td>
                             <td className="px-2 py-3">
-                              {profile?.role === 'admin' && (
-                                <button onClick={async () => { if (confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) } }} className="text-stone-300 hover:text-red-400 p-1">✕</button>
+                              {podeEditar && (
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => { setEditingMedicaoId(m.id); setEditMedicaoForm({ data_medicao: m.data_medicao, peso_kg: String(m.peso_kg), altura_cm: String(m.altura_cm) }) }} className="text-stone-300 hover:text-orange-500 p-1 text-xs">✎</button>
+                                  {profile?.role === 'admin' && (
+                                    <button onClick={async () => { if (confirm('Remover?')) { await deleteMedicao(m.id); setMedicoes(ms => ms.filter(x => x.id !== m.id)) } }} className="text-stone-300 hover:text-red-400 p-1 text-xs">✕</button>
+                                  )}
+                                </div>
                               )}
                             </td>
                           </tr>
