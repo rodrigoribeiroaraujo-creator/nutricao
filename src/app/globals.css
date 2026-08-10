@@ -95,6 +95,10 @@ html.dark .border-t.border-stone-100 { border-color: #44403c !important; }
 html.dark header.bg-white { background-color: #1c1917 !important; }
 html.dark nav.bg-white { background-color: #1c1917 !important; }
 
+/* hide scrollbar but keep functional */
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-none::-webkit-scrollbar { display: none; }
+
 /* table */
 html.dark .bg-stone-50.border-b { background-color: #1c1917 !important; }
 html.dark tbody tr:hover { background-color: #3a3633 !important; }
