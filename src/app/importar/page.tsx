@@ -43,9 +43,15 @@ export default function ImportarPage() {
     setUploading(true)
     setError('')
     try {
+      const session = await getSession()
+      if (!session) throw new Error('Sessão expirada.')
       const fd = new FormData()
       fd.append('pdf', file)
-      const res = await fetch('/api/importar-preconsulta', { method: 'POST', body: fd })
+      const res = await fetch('/api/importar-preconsulta', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}` },
+        body: fd,
+      })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Erro ao processar PDF.')
       setFields(json.fields)

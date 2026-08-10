@@ -1,15 +1,47 @@
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { parsePdfText, normalizeDate } from '@/lib/preconsulta-parser'
 
 export const dynamic = 'force-dynamic'
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
 export async function POST(req: NextRequest) {
+  // Auth check
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) return NextResponse.json({ error: 'Servidor não configurado.' }, { status: 500 })
+  const authHeader = req.headers.get('authorization')
+  if (!authHeader) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serviceKey,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+  if (authError || !user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
+
   try {
     const formData = await req.formData()
     const file = formData.get('pdf') as File | null
     if (!file) return NextResponse.json({ error: 'Arquivo PDF não encontrado.' }, { status: 400 })
 
+    // File size limit
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json({ error: 'Arquivo muito grande. Máximo permitido: 10 MB.' }, { status: 413 })
+    }
+
+    // Basic MIME check
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      return NextResponse.json({ error: 'Apenas arquivos PDF são aceitos.' }, { status: 400 })
+    }
+
     const buffer = Buffer.from(await file.arrayBuffer())
+
+    // Verify PDF magic bytes
+    if (buffer.length < 4 || buffer.slice(0, 4).toString() !== '%PDF') {
+      return NextResponse.json({ error: 'O arquivo não é um PDF válido.' }, { status: 400 })
+    }
 
     // Use lib path to avoid Next.js test-file conflict with pdf-parse
     // eslint-disable-next-line @typescript-eslint/no-require-imports
