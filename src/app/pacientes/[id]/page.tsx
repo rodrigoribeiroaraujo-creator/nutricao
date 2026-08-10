@@ -635,15 +635,13 @@ export default function PacientePage() {
             {showSessaoForm && podeEditar && (
               <form onSubmit={handleAddSessao} className="bg-white border border-orange-200 rounded-2xl p-4 space-y-3">
                 <p className="font-medium text-stone-700 text-sm">Sessão #{sessoes.length + 1}</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-stone-500 block mb-1">Data</label>
-                    <input type="date" value={sessaoForm.data_sessao} onChange={e => setSessaoForm(f => ({ ...f, data_sessao: e.target.value }))} required className="w-full text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-stone-500 block mb-1">Peso (kg)</label>
-                    <input type="text" inputMode="decimal" placeholder="Ex: 32.5" value={sessaoForm.peso_kg} onChange={e => setSessaoForm(f => ({ ...f, peso_kg: e.target.value }))} className="w-full text-sm" />
-                  </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Data</label>
+                  <input type="date" value={sessaoForm.data_sessao} onChange={e => setSessaoForm(f => ({ ...f, data_sessao: e.target.value }))} required className="w-full text-sm" />
+                </div>
+                <div>
+                  <label className="text-xs text-stone-500 block mb-1">Peso (kg)</label>
+                  <input type="text" inputMode="decimal" placeholder="Ex: 32.5" value={sessaoForm.peso_kg} onChange={e => setSessaoForm(f => ({ ...f, peso_kg: e.target.value }))} className="w-full text-sm" />
                 </div>
                 <div>
                   <label className="text-xs text-stone-500 block mb-1">Adesão ao plano</label>
