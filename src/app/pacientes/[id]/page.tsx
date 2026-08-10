@@ -1,22 +1,23 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   getPaciente, getMedicoes, createMedicao, updateMedicao, deleteMedicao, deletePaciente,
   getConsultasByPaciente, createConsulta, updateConsultaStatus, deleteConsulta,
   getSuplemtacoes, createSuplemtacao, deleteSuplemtacao,
   getSessoesByPaciente, createSessao, deleteSessao,
+  getAnamnesesByPaciente,
   getSession, getProfile,
-  type Paciente, type Medicao, type Profile, type Consulta, type Suplementacao, type Sessao,
+  type Paciente, type Medicao, type Profile, type Consulta, type Suplementacao, type Sessao, type AnamneseTea,
 } from '@/lib/supabase'
 import { WHO_IMC, WHO_PESO, WHO_ALTURA, classifyZScore, calcIdadeAnos, getChartSeries, getNutritionalStatus } from '@/lib/who'
 import { NUTRIENTES_DRI, getEstagioVida, getDRI, type NutrienteDRI } from '@/lib/dri'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import BottomNav from '@/components/BottomNav'
 
-type Tab = 'medicoes' | 'curvas' | 'suplementacao' | 'financeiro' | 'sessoes'
+type Tab = 'medicoes' | 'curvas' | 'suplementacao' | 'financeiro' | 'sessoes' | 'anamnese'
 
 function idadeStr(dataNasc: string, dataRef?: string) {
   const anos = calcIdadeAnos(dataNasc, dataRef)
@@ -99,12 +100,14 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
 export default function PacientePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('medicoes')
+  const searchParams = useSearchParams()
+  const [tab, setTab] = useState<Tab>((searchParams.get('tab') as Tab) || 'medicoes')
   const [paciente, setPaciente] = useState<Paciente | null>(null)
   const [medicoes, setMedicoes] = useState<Medicao[]>([])
   const [consultas, setConsultas] = useState<Consulta[]>([])
   const [suplementacoes, setSuplemtacoes] = useState<Suplementacao[]>([])
   const [sessoes, setSessoes] = useState<Sessao[]>([])
+  const [anamneses, setAnamneses] = useState<Omit<AnamneseTea, 'dados'>[]>([])
   const [profile, setProfile] = useState<Profile | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -154,13 +157,14 @@ export default function PacientePage() {
     getSession().then(async session => {
       if (!session) { router.push('/login'); return }
       setUserId(session.user.id)
-      const [prof, p, m, cs, sups, sess] = await Promise.all([
+      const [prof, p, m, cs, sups, sess, anams] = await Promise.all([
         getProfile(session.user.id),
         getPaciente(id),
         getMedicoes(id),
         getConsultasByPaciente(id),
         getSuplemtacoes(id),
         getSessoesByPaciente(id),
+        getAnamnesesByPaciente(id),
       ])
       setProfile(prof)
       setPaciente(p)
@@ -168,6 +172,7 @@ export default function PacientePage() {
       setConsultas(cs)
       setSuplemtacoes(sups)
       setSessoes(sess)
+      setAnamneses(anams)
       setLoading(false)
     }).catch(() => router.push('/'))
   }, [id, router])
@@ -338,6 +343,7 @@ export default function PacientePage() {
     { key: 'curvas', label: 'Curvas' },
     { key: 'suplementacao', label: 'Suplementação', badge: suplementacoes.length || undefined },
     { key: 'sessoes', label: 'Sessões', badge: sessoes.length || undefined },
+    { key: 'anamnese', label: 'Anamnese', badge: anamneses.length || undefined },
     { key: 'financeiro', label: 'Financeiro' },
   ]
 
@@ -816,6 +822,48 @@ export default function PacientePage() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ── Tab: Anamnese ── */}
+        {tab === 'anamnese' && (
+          <>
+            {podeEditar && (
+              <Link
+                href={`/anamnese/nova?pacienteId=${id}&nome=${encodeURIComponent(paciente.nome)}`}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-dashed border-orange-300 text-orange-600 text-sm font-medium hover:bg-orange-50 transition">
+                <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>add</span>
+                Nova anamnese
+              </Link>
+            )}
+
+            {anamneses.length === 0 ? (
+              <div className="bg-white border border-stone-100 rounded-2xl p-10 text-center">
+                <p className="text-stone-400 text-sm">Nenhuma anamnese registrada.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {anamneses.map(a => (
+                  <Link key={a.id} href={`/anamnese/${a.id}`}
+                    className="flex items-center justify-between bg-white border border-stone-100 rounded-2xl px-4 py-4 hover:border-orange-200 hover:shadow-sm transition">
+                    <div>
+                      <p className="text-sm font-medium text-stone-800">
+                        {a.data_consulta
+                          ? new Date(a.data_consulta + 'T12:00:00').toLocaleDateString('pt-BR')
+                          : new Date(a.created_at).toLocaleDateString('pt-BR')}
+                      </p>
+                      {a.nivel_tea && (
+                        <p className="text-xs text-orange-600 mt-0.5">TEA — Nível {a.nivel_tea}</p>
+                      )}
+                      {a.nutricionista && (
+                        <p className="text-xs text-stone-400 mt-0.5">{a.nutricionista}</p>
+                      )}
+                    </div>
+                    <span className="text-stone-300 text-sm">›</span>
+                  </Link>
+                ))}
               </div>
             )}
           </>

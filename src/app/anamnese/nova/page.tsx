@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { createAnamneseTea, getSession, getProfile, type Profile } from '@/lib/supabase'
@@ -120,8 +120,12 @@ function CurvaAnamnese({ dataNasc, sexo, dataRef, pesoKg, altCm, tipo }: {
 
 export default function NovaAnamnesePage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const pacienteId = searchParams.get('pacienteId')
+  const pacienteNome = searchParams.get('nome') ?? ''
+
   const [step, setStep] = useState(1)
-  const [form, setForm] = useState<FormData>(INITIAL)
+  const [form, setForm] = useState<FormData>({ ...INITIAL, nome_paciente: pacienteNome })
   const [chartTipo, setChartTipo] = useState<ChartTipo>('imc')
   const [saving, setSaving] = useState(false)
   const [erro, setErro] = useState('')
@@ -165,6 +169,7 @@ export default function NovaAnamnesePage() {
     setSaving(true); setErro('')
     try {
       const result = await createAnamneseTea({
+        paciente_id: pacienteId ?? undefined,
         nome_paciente: form.nome_paciente.trim(),
         data_consulta: form.data_consulta || undefined,
         nutricionista: form.nutricionista || undefined,
@@ -172,7 +177,11 @@ export default function NovaAnamnesePage() {
         dados: { ...form, imc: imc ?? '' },
         created_by: userId,
       })
-      router.push(`/anamnese/${result.id}`)
+      if (pacienteId) {
+        router.push(`/pacientes/${pacienteId}?tab=anamnese`)
+      } else {
+        router.push(`/anamnese/${result.id}`)
+      }
     } catch (err: any) { setErro(err.message) }
     finally { setSaving(false) }
   }
