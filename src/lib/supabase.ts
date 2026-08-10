@@ -155,6 +155,7 @@ export async function updateProfile(id: string, updates: Partial<Pick<Profile, '
 
 export type AnamneseTea = {
   id: string
+  paciente_id?: string | null
   nome_paciente: string
   data_consulta: string | null
   nutricionista: string | null
@@ -179,7 +180,18 @@ export async function getAnamneseTea(id: string) {
   return data as AnamneseTea
 }
 
+export async function getAnamnesesByPaciente(pacienteId: string) {
+  const { data, error } = await supabase
+    .from('anamneses_tea')
+    .select('id, nome_paciente, data_consulta, nutricionista, nivel_tea, created_at')
+    .eq('paciente_id', pacienteId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data as Omit<AnamneseTea, 'dados'>[]
+}
+
 export async function createAnamneseTea(a: {
+  paciente_id?: string
   nome_paciente: string
   data_consulta?: string
   nutricionista?: string
