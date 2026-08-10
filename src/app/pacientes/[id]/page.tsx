@@ -519,7 +519,6 @@ export default function PacientePage() {
                           <tr key={m.id} className="border-b border-stone-50 hover:bg-stone-50">
                             <td className="px-3 py-3 text-stone-600 text-xs">
                               {new Date(m.data_medicao + 'T12:00:00').toLocaleDateString('pt-BR')}
-                              {i === medicoes.length - 1 && <span className="ml-1 text-orange-600 font-medium">recente</span>}
                             </td>
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.peso_kg} kg</td>
                             <td className="px-3 py-3 text-right font-medium text-sm">{m.altura_cm} cm</td>
