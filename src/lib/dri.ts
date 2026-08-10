@@ -159,6 +159,22 @@ export const NUTRIENTES_DRI: NutrienteDRI[] = [
     },
   },
   {
+    id: 'vit-b5',
+    nome: 'Vitamina B5 (Ácido Pantotênico)',
+    unidade: 'mg/dia',
+    categoria: 'Vitamina',
+    valores: {
+      '0-6m':     ai(1.7, null), '7-12m':    ai(1.8, null),
+      '1-3a':     ai(2,   null), '4-8a':     ai(3,   null),
+      '9-13a-M':  ai(4,   null), '14-18a-M': ai(5,   null),
+      '19-30a-M': ai(5,   null), '31-50a-M': ai(5,   null),
+      '51-70a-M': ai(5,   null), '>70a-M':   ai(5,   null),
+      '9-13a-F':  ai(4,   null), '14-18a-F': ai(5,   null),
+      '19-30a-F': ai(5,   null), '31-50a-F': ai(5,   null),
+      '51-70a-F': ai(5,   null), '>70a-F':   ai(5,   null),
+    },
+  },
+  {
     id: 'vit-b6',
     nome: 'Vitamina B6',
     unidade: 'mg/dia',
