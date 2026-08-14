@@ -20,6 +20,7 @@ export default function ImportarPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [step, setStep] = useState<Step>('upload')
   const [fields, setFields] = useState<Record<string, string>>({})
+  const [rawText, setRawText] = useState('')
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const [dragOver, setDragOver] = useState(false)
@@ -55,6 +56,7 @@ export default function ImportarPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Erro ao processar PDF.')
       setFields(json.fields)
+      setRawText(json._rawText || '')
       setStep('preview')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erro ao processar PDF.')
@@ -232,6 +234,13 @@ export default function ImportarPage() {
                   </div>
                 ))}
               </div>
+            )}
+
+            {rawText && (
+              <details className="bg-stone-50 border border-stone-200 rounded-xl p-3">
+                <summary className="text-xs font-semibold text-stone-500 cursor-pointer">Texto bruto extraído (debug)</summary>
+                <pre className="text-xs text-stone-600 mt-2 whitespace-pre-wrap break-all">{rawText}</pre>
+              </details>
             )}
 
             {error && (

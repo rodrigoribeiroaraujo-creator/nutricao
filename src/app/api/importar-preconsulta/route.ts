@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       fields.data_nascimento = normalizeDate(fields.data_nascimento)
     }
 
-    return NextResponse.json({ fields })
+    return NextResponse.json({ fields, _rawText: text.slice(0, 4000) })
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err)
     console.error('PDF parse error:', msg)
