@@ -82,6 +82,8 @@ function isNoiseLine(line: string): boolean {
   // Google Forms branding
   if (/google forms/i.test(l)) return true
   if (/este conteúdo não foi criado/i.test(l)) return true
+  // URLs (Google Forms footer link and any other URLs)
+  if (/^https?:\/\//i.test(l)) return true
   // Standalone asterisk(s)
   if (/^\*+$/.test(l)) return true
   // Question continuation: lines that end with "?" are question text, not answers
@@ -108,20 +110,19 @@ export function parsePdfText(text: string): Partial<ParsedPreconsulta> {
 
   function saveAnswer() {
     if (currentKey && answerParts.length > 0) {
-      // Strip leading asterisks/spaces (required-field markers)
       const value = answerParts.join(', ').replace(/^\*+\s*/, '').trim()
       if (value) result[currentKey] = value
     }
   }
 
   for (const line of lines) {
-    if (isNoiseLine(line)) continue
+    // Always check question match first — question lines may end with "?" but must not be skipped
     const key = matchQuestion(line)
     if (key) {
       saveAnswer()
       currentKey = key
       answerParts = []
-    } else if (currentKey) {
+    } else if (!isNoiseLine(line) && currentKey) {
       answerParts.push(line)
     }
   }
