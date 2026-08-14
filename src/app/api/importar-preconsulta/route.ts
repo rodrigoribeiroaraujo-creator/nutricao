@@ -41,10 +41,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'O arquivo não é um PDF válido.' }, { status: 400 })
     }
 
-    // Use lib path to avoid Next.js test-file conflict with pdf-parse
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require('pdf-parse/lib/pdf-parse')
-    const { text } = await pdfParse(buffer)
+    const { PDFParse } = require('pdf-parse')
+    const parser = new PDFParse({ data: buffer })
+    const { text } = await parser.getText()
+    await parser.destroy()
 
     const fields = parsePdfText(text)
 
