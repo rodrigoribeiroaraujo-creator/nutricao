@@ -7,18 +7,16 @@ export const dynamic = 'force-dynamic'
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
 
 export async function POST(req: NextRequest) {
-  // Auth check
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceKey) return NextResponse.json({ error: 'Servidor não configurado.' }, { status: 500 })
+  // Auth check usando chave anon (suficiente para verificar sessão)
   const authHeader = req.headers.get('authorization')
   if (!authHeader) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
-  const supabaseAdmin = createClient(
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
   const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
 
   try {

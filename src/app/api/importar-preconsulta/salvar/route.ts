@@ -5,20 +5,22 @@ import { normalizeSex, extractNumber } from '@/lib/preconsulta-parser'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!serviceKey) return NextResponse.json({ error: 'Servidor não configurado.' }, { status: 500 })
-
   const authHeader = req.headers.get('authorization')
   if (!authHeader) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
 
-  const supabaseAdmin = createClient(
+  const token = authHeader.replace('Bearer ', '')
+
+  // Verifica sessão e usa o token do usuário para as operações (RLS aplica)
+  const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey,
-    { auth: { autoRefreshToken: false, persistSession: false } }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    }
   )
 
-  const token = authHeader.replace('Bearer ', '')
-  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) return NextResponse.json({ error: 'Não autorizado.' }, { status: 401 })
 
   const fields: Record<string, string> = await req.json()
@@ -31,7 +33,7 @@ export async function POST(req: NextRequest) {
   const sexo = normalizeSex(fields.sexo || 'M')
 
   // Create patient
-  const { data: paciente, error: pacienteError } = await supabaseAdmin
+  const { data: paciente, error: pacienteError } = await supabase
     .from('pacientes')
     .insert({ nome, data_nascimento, sexo, observacoes: fields.info_adicional || null })
     .select()
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
   const peso = extractNumber(fields.peso_atual || '')
   const altura = extractNumber(fields.altura_atual || '')
   if (peso && altura && peso > 0 && altura > 0) {
-    await supabaseAdmin.from('medicoes').insert({
+    await supabase.from('medicoes').insert({
       paciente_id: paciente.id,
       data_medicao: new Date().toISOString().split('T')[0],
       peso_kg: peso,
@@ -58,7 +60,7 @@ export async function POST(req: NextRequest) {
     if (!PATIENT_FIELDS.has(k) && v?.trim()) dados[k] = v.trim()
   }
 
-  await supabaseAdmin.from('anamneses_tea').insert({
+  await supabase.from('anamneses_tea').insert({
     nome_paciente: nome,
     data_consulta: new Date().toISOString().split('T')[0],
     dados,
