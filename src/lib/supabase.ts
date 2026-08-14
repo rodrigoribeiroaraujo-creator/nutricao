@@ -389,6 +389,12 @@ export async function createSuplemtacao(s: Omit<Suplementacao, 'id' | 'created_a
   return data as Suplementacao
 }
 
+export async function updateSuplemtacao(id: string, updates: { dose_prescrita: number; observacoes?: string | null }) {
+  const { data, error } = await supabase.from('suplementacoes').update(updates).eq('id', id).select().single()
+  if (error) throw error
+  return data as Suplementacao
+}
+
 export async function deleteSuplemtacao(id: string) {
   const { error } = await supabase.from('suplementacoes').delete().eq('id', id)
   if (error) throw error

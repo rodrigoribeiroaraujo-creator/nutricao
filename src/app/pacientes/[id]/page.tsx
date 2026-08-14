@@ -9,6 +9,7 @@ import {
   getSuplemtacoes, createSuplemtacao, deleteSuplemtacao,
   getSessoesByPaciente, createSessao, deleteSessao,
   getAnamnesesByPaciente,
+  updateSuplemtacao,
   getSession, getProfile,
   type Paciente, type Medicao, type Profile, type Consulta, type Suplementacao, type Sessao, type AnamneseTea,
 } from '@/lib/supabase'
@@ -145,6 +146,9 @@ export default function PacientePage() {
   })
 
   // suplementação
+  const [editingSuplId, setEditingSuplId] = useState<string | null>(null)
+  const [editSuplForm, setEditSuplForm] = useState({ dose_prescrita: '', observacoes: '' })
+  const [savingEditSupl, setSavingEditSupl] = useState(false)
   const [showSuplModal, setShowSuplModal] = useState(false)
   const [selectedNutriente, setSelectedNutriente] = useState<NutrienteDRI | null>(null)
   const [dose, setDose] = useState('')
@@ -290,6 +294,19 @@ export default function PacientePage() {
       setObsSupl('')
     } catch (err: any) { setErroSupl(err.message) }
     finally { setSavingSupl(false) }
+  }
+
+  async function handleSaveEditSupl(supId: string) {
+    setSavingEditSupl(true)
+    try {
+      const updated = await updateSuplemtacao(supId, {
+        dose_prescrita: parseFloat(editSuplForm.dose_prescrita.replace(',', '.')),
+        observacoes: editSuplForm.observacoes || null,
+      })
+      setSuplemtacoes(s => s.map(x => x.id === supId ? updated : x))
+      setEditingSuplId(null)
+    } catch { /* ignore */ }
+    finally { setSavingEditSupl(false) }
   }
 
   async function handleDeleteSupl(supId: string, nome: string) {
@@ -666,37 +683,76 @@ export default function PacientePage() {
                 {suplementacoes.map(s => {
                   const excessoUL = s.ul != null && s.dose_prescrita > s.ul
                   const pctDRI = s.dose_dri ? Math.round((s.dose_prescrita / s.dose_dri) * 100) : null
+                  const isEditing = editingSuplId === s.id
                   return (
-                    <div key={s.id} className={`bg-white border rounded-2xl p-4 ${excessoUL ? 'border-red-200' : 'border-stone-100'}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
+                    <div key={s.id} className={`bg-white border rounded-2xl p-4 ${excessoUL && !isEditing ? 'border-red-200' : isEditing ? 'border-orange-200' : 'border-stone-100'}`}>
+                      {isEditing ? (
+                        <div className="space-y-3">
                           <p className="font-semibold text-stone-800">{s.nutriente_nome}</p>
-                          <p className="text-2xl font-bold text-orange-700 mt-1">
-                            {s.dose_prescrita} <span className="text-sm font-normal text-stone-400">{s.unidade}</span>
-                          </p>
-                          {s.dose_dri != null && (
-                            <p className="text-xs text-stone-400 mt-1">
-                              {s.is_ai ? 'AI' : 'RDA'}: {s.dose_dri} {s.unidade}
-                              {pctDRI != null && (
-                                <span className={`ml-1.5 font-medium ${pctDRI > 100 ? 'text-orange-600' : 'text-stone-500'}`}>
-                                  ({pctDRI}% da referência)
-                                </span>
-                              )}
-                            </p>
-                          )}
-                          {s.ul != null && (
-                            <p className={`text-xs mt-0.5 ${excessoUL ? 'text-red-500 font-medium' : 'text-stone-400'}`}>
-                              {excessoUL ? '⚠ ' : ''}UL: {s.ul} {s.unidade}{excessoUL && ' — acima do limite!'}
-                            </p>
-                          )}
-                          {s.observacoes && <p className="text-xs text-stone-500 mt-1.5 italic">{s.observacoes}</p>}
+                          <div>
+                            <label className="text-xs text-stone-500 block mb-1">Dose prescrita ({s.unidade})</label>
+                            <input type="text" inputMode="decimal" value={editSuplForm.dose_prescrita}
+                              onChange={e => setEditSuplForm(f => ({ ...f, dose_prescrita: e.target.value }))}
+                              className="w-full text-sm" />
+                            {s.ul != null && parseFloat(editSuplForm.dose_prescrita) > s.ul && (
+                              <p className="text-xs text-red-500 mt-1">⚠ Acima do UL ({s.ul} {s.unidade})</p>
+                            )}
+                          </div>
+                          <div>
+                            <label className="text-xs text-stone-500 block mb-1">Observações</label>
+                            <input type="text" value={editSuplForm.observacoes}
+                              onChange={e => setEditSuplForm(f => ({ ...f, observacoes: e.target.value }))}
+                              placeholder="Ex: tomar com refeição" className="w-full text-sm" />
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={() => handleSaveEditSupl(s.id)} disabled={savingEditSupl}
+                              className="flex-1 bg-orange-700 text-white text-sm py-2 rounded-xl font-medium disabled:opacity-50">
+                              {savingEditSupl ? 'Salvando…' : 'Salvar'}
+                            </button>
+                            <button onClick={() => setEditingSuplId(null)}
+                              className="flex-1 border border-stone-200 text-stone-500 text-sm py-2 rounded-xl">
+                              Cancelar
+                            </button>
+                          </div>
                         </div>
-                        {podeEditar && (
-                          <button onClick={() => handleDeleteSupl(s.id, s.nutriente_nome)} className="text-stone-300 hover:text-red-400 p-1 flex-shrink-0">
-                            <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>delete</span>
-                          </button>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-stone-800">{s.nutriente_nome}</p>
+                            <p className="text-2xl font-bold text-orange-700 mt-1">
+                              {s.dose_prescrita} <span className="text-sm font-normal text-stone-400">{s.unidade}</span>
+                            </p>
+                            {s.dose_dri != null && (
+                              <p className="text-xs text-stone-400 mt-1">
+                                {s.is_ai ? 'AI' : 'RDA'}: {s.dose_dri} {s.unidade}
+                                {pctDRI != null && (
+                                  <span className={`ml-1.5 font-medium ${pctDRI > 100 ? 'text-orange-600' : 'text-stone-500'}`}>
+                                    ({pctDRI}% da referência)
+                                  </span>
+                                )}
+                              </p>
+                            )}
+                            {s.ul != null && (
+                              <p className={`text-xs mt-0.5 ${excessoUL ? 'text-red-500 font-medium' : 'text-stone-400'}`}>
+                                {excessoUL ? '⚠ ' : ''}UL: {s.ul} {s.unidade}{excessoUL && ' — acima do limite!'}
+                              </p>
+                            )}
+                            {s.observacoes && <p className="text-xs text-stone-500 mt-1.5 italic">{s.observacoes}</p>}
+                          </div>
+                          {podeEditar && (
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button
+                                onClick={() => { setEditingSuplId(s.id); setEditSuplForm({ dose_prescrita: String(s.dose_prescrita), observacoes: s.observacoes ?? '' }) }}
+                                className="text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 rounded-lg px-2.5 py-1.5 hover:bg-orange-100">
+                                Editar
+                              </button>
+                              <button onClick={() => handleDeleteSupl(s.id, s.nutriente_nome)} className="text-stone-300 hover:text-red-400 p-1">
+                                <span className="material-symbols-outlined leading-none" style={{ fontSize: '18px' }}>delete</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
