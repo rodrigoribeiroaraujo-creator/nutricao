@@ -39,11 +39,17 @@ export default function NovoPaciente() {
   return (
     <div className="min-h-dvh flex flex-col md:pl-56">
       <header className="bg-white border-b border-stone-100 sticky top-0 z-10" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-        <div className="max-w-xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Link href="/" className="flex-shrink-0 text-orange-700">
-            <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+        <div className="max-w-xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex-shrink-0 text-orange-700">
+              <span className="material-symbols-outlined leading-none select-none" style={{fontSize:'22px'}}>clinical_notes</span>
+            </Link>
+            <h1 className="font-semibold text-lg">Novo paciente</h1>
+          </div>
+          <Link href="/importar" className="flex items-center gap-1.5 border border-orange-700 text-orange-700 text-sm font-medium px-3 py-2 rounded-lg hover:bg-orange-50">
+            <span className="material-symbols-outlined leading-none" style={{fontSize:'16px'}}>upload_file</span>
+            PDF
           </Link>
-          <h1 className="font-semibold text-lg">Novo paciente</h1>
         </div>
       </header>
       <main className="flex-1 max-w-xl mx-auto w-full px-4 py-8 pb-28 md:pb-8">
