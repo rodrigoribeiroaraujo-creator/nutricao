@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
 import { parsePdfText, normalizeDate } from '@/lib/preconsulta-parser'
+import { extractText } from 'unpdf'
 
 export const dynamic = 'force-dynamic'
 
@@ -41,11 +42,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'O arquivo não é um PDF válido.' }, { status: 400 })
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PDFParse } = require('pdf-parse')
-    const parser = new PDFParse({ data: buffer })
-    const { text } = await parser.getText()
-    await parser.destroy()
+    const { text: pages } = await extractText(new Uint8Array(buffer), { mergePages: true })
+    const text = Array.isArray(pages) ? pages.join('\n') : pages
 
     const fields = parsePdfText(text)
 
@@ -55,7 +53,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ fields })
   } catch (err: unknown) {
-    console.error('PDF parse error:', err)
-    return NextResponse.json({ error: 'Erro ao ler o PDF. Verifique se o arquivo é válido.' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    console.error('PDF parse error:', msg)
+    return NextResponse.json({ error: `Erro ao ler o PDF: ${msg}` }, { status: 500 })
   }
 }
