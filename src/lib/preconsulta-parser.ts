@@ -48,10 +48,10 @@ const SECTION_HEADERS = [
 ]
 
 const QUESTIONS: Array<{ key: string; pattern: RegExp }> = [
-  { key: 'nome_paciente',         pattern: /^nome da criança\s*\*?$/i },
-  { key: 'data_nascimento',       pattern: /^data de nascimento\s*\*?$/i },
-  { key: 'idade',                 pattern: /^idade\s*\*?$/i },
-  { key: 'sexo',                  pattern: /^sexo da criança\s*\*?$/i },
+  { key: 'nome_paciente',         pattern: /^nome da criança/i },
+  { key: 'data_nascimento',       pattern: /^data de nascimento/i },
+  { key: 'idade',                 pattern: /^idade\b/i },
+  { key: 'sexo',                  pattern: /^sexo da criança/i },
   { key: 'peso_atual',            pattern: /^peso atual da criança/i },
   { key: 'altura_atual',          pattern: /^altura atual/i },
   { key: 'diagnostico_medico',    pattern: /^a criança possui algum diagnóstico médico/i },
@@ -71,14 +71,30 @@ const QUESTIONS: Array<{ key: string; pattern: RegExp }> = [
   { key: 'info_adicional',        pattern: /^existe alguma informação importante sobre a alimentação/i },
 ]
 
-function isSectionHeader(line: string): boolean {
-  const l = line.toLowerCase()
-  return SECTION_HEADERS.some(h => l.includes(h))
+// Lines that are never answers: section headers, page headers, noise
+function isNoiseLine(line: string): boolean {
+  const l = line.trim()
+  // Google Forms page header timestamp: "14/08/2026, 14:56" or "14/08/2026 14:56"
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}[,\s]/.test(l)) return true
+  // Form title in any variation
+  if (/formulário de pré.consulta/i.test(l)) return true
+  if (/pré.consulta\s*[–-]/i.test(l)) return true
+  // Google Forms branding
+  if (/google forms/i.test(l)) return true
+  if (/este conteúdo não foi criado/i.test(l)) return true
+  // Standalone asterisk(s)
+  if (/^\*+$/.test(l)) return true
+  // Question continuation: lines that end with "?" are question text, not answers
+  if (l.endsWith('?')) return true
+  // Section headers
+  if (SECTION_HEADERS.some(h => l.toLowerCase().includes(h))) return true
+  return false
 }
 
 function matchQuestion(line: string): string | null {
+  const t = line.trim()
   for (const q of QUESTIONS) {
-    if (q.pattern.test(line.trim())) return q.key
+    if (q.pattern.test(t)) return q.key
   }
   return null
 }
@@ -92,17 +108,20 @@ export function parsePdfText(text: string): Partial<ParsedPreconsulta> {
 
   function saveAnswer() {
     if (currentKey && answerParts.length > 0) {
-      result[currentKey] = answerParts.join(', ')
+      // Strip leading asterisks/spaces (required-field markers)
+      const value = answerParts.join(', ').replace(/^\*+\s*/, '').trim()
+      if (value) result[currentKey] = value
     }
   }
 
   for (const line of lines) {
+    if (isNoiseLine(line)) continue
     const key = matchQuestion(line)
     if (key) {
       saveAnswer()
       currentKey = key
       answerParts = []
-    } else if (currentKey && !isSectionHeader(line)) {
+    } else if (currentKey) {
       answerParts.push(line)
     }
   }
