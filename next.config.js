@@ -8,6 +8,7 @@ const securityHeaders = [
 ]
 
 const nextConfig = {
+  serverExternalPackages: ['unpdf', 'pdfjs-dist'],
   async headers() {
     return [
       {
