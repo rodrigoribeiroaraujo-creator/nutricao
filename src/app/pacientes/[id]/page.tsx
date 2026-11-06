@@ -51,10 +51,17 @@ function CurvaChart({ paciente, medicoes, tipo }: { paciente: Paciente; medicoes
   const { ages, zm3, zm2, z0, zp2, zp3 } = getChartSeries(dataset, paciente.sexo, ageMax)
   const maxDataAge = Math.max(...ages)
   if (ageMax > maxDataAge) {
+    const isPeso = tipo === 'peso'
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center">
-        <p className="text-sm text-amber-700 font-medium">Curvas OMS não disponíveis para esta faixa etária.</p>
-        <p className="text-xs text-amber-500 mt-1">Referência disponível até {Math.floor(maxDataAge)} anos.</p>
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-center space-y-1">
+        <p className="text-sm text-amber-700 font-medium">
+          {isPeso ? 'Curva de peso-por-idade não disponível acima de 10 anos.' : 'Curvas OMS não disponíveis para esta faixa etária.'}
+        </p>
+        <p className="text-xs text-amber-600 mt-1">
+          {isPeso
+            ? 'A OMS não publica referência de peso isolado para adolescentes. Utilize o gráfico de IMC-por-idade, que é o indicador recomendado para avaliação nutricional nessa faixa etária.'
+            : `Referência disponível até ${Math.floor(maxDataAge)} anos.`}
+        </p>
       </div>
     )
   }
